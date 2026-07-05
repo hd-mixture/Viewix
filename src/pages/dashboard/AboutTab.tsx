@@ -1,8 +1,26 @@
 import { motion } from "framer-motion"
-import { Info, MessageCircle, Globe, Heart, CheckCircle2, History } from "lucide-react"
+import { Info, MessageCircle, Globe, Heart, CheckCircle2, History, Sparkles, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+const upcomingFeatures = [
+  "Viewix Pro: Unlimited Cloud Sync & AI Document Summaries",
+  "Viewix Pro: OCR for Image PDFs & Team Collaboration",
+  "Settings: Theme overrides, Auto Save, Keyboard Shortcuts",
+  "User Profile: Account management and Connected devices"
+]
+
 const changelog = [
+  {
+    version: "v2.2.0",
+    date: "July 2026",
+    changes: [
+      "Added Universal Search command palette (Ctrl+T / Ctrl+D)",
+      "Implemented bi-directional sliding animations for Toolbar",
+      "Added 'Open File' native integration in Dashboard header",
+      "Introduced Viewix Pro roadmap preview and Coming Soon modals",
+      "Enhanced PDF text highlighting to respect native text rendering"
+    ]
+  },
   {
     version: "v2.1.0",
     date: "July 2026",
@@ -90,6 +108,31 @@ export function AboutTab() {
                   </div>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section className="pt-4">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500" /> Upcoming Changelog
+            </h2>
+            <div className="relative pl-8">
+              <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-500 flex items-center justify-center">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+              </div>
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">v3.0.0 (Roadmap)</h3>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 bg-amber-100 dark:bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-200/50 dark:border-amber-500/20">Coming Soon</span>
+              </div>
+              <div className="bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-900/10 dark:to-orange-900/5 border border-amber-200/60 dark:border-amber-500/20 rounded-2xl p-5 shadow-sm">
+                <ul className="space-y-3">
+                  {upcomingFeatures.map((feature, j) => (
+                    <li key={j} className="flex items-start gap-2.5">
+                      <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </section>
 

@@ -15,6 +15,8 @@ import { Logo } from "@/components/Logo"
 import * as pdfjsLib from "pdfjs-dist"
 import { SignatureModal } from "@/components/ui/modals/SignatureModal"
 import { ToastNotification } from "@/components/ui/ToastNotification"
+import { ComingSoonModal } from "@/components/ui/modals/ComingSoonModal"
+import { ProPreviewModal } from "@/components/ui/modals/ProPreviewModal"
 
 import { HomeTab } from "./dashboard/HomeTab"
 import { RecentFilesTab } from "./dashboard/RecentFilesTab"
@@ -32,6 +34,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 export function Dashboard() {
   const [isUploading, setIsUploading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [comingSoonType, setComingSoonType] = useState<"settings" | "profile" | null>(null)
+  const [isProModalOpen, setIsProModalOpen] = useState(false)
 
   const { 
     setPdfFile, 
@@ -82,7 +86,7 @@ export function Dashboard() {
     }
   }, [setPdfFile, setPdfDocument])
 
-  const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections, open } = useDropzone({
     onDrop: (files, rejectedFiles) => {
       setOpenedFromDashboard(false)
       
@@ -141,23 +145,23 @@ export function Dashboard() {
         </div>
 
         {/* Pro Card */}
-        <div className="relative mt-auto overflow-hidden rounded-xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 p-5 shadow-lg dark:shadow-xl transition-all duration-500">
-          <div className="absolute top-0 right-0 p-3 opacity-5 dark:opacity-10 text-amber-500">
+        <button 
+          onClick={() => setIsProModalOpen(true)}
+          className="relative mt-auto overflow-hidden rounded-xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 p-5 shadow-lg dark:shadow-xl transition-all duration-300 hover:shadow-amber-500/10 hover:border-amber-500/30 dark:hover:shadow-amber-500/20 group text-left cursor-pointer"
+        >
+          <div className="absolute top-0 right-0 p-3 opacity-5 dark:opacity-10 text-amber-500 transition-transform duration-500 group-hover:scale-110">
             <Crown className="w-20 h-20" />
           </div>
           <div className="relative z-10 space-y-2">
             <div className="flex items-center gap-2 text-amber-500">
               <Crown className="h-4 w-4 fill-amber-500/20" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Unlock Pro</h3>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Viewix Pro</h3>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Get unlimited features and cloud sync.
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+              Preview the premium roadmap for professional users.
             </p>
-            <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-0 shadow-[0_0_15px_rgba(37,99,235,0.2)] dark:shadow-[0_0_10px_rgba(37,99,235,0.3)] h-9 text-xs transition-shadow">
-              Upgrade Now
-            </Button>
           </div>
-        </div>
+        </button>
       </aside>
 
       {/* Main Content Area */}
@@ -168,7 +172,11 @@ export function Dashboard() {
 
         {/* Top Navbar */}
         <header className="h-16 flex items-center justify-end px-8 gap-4 shrink-0 relative z-10">
-          <Button variant="outline" className="gap-2 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl px-5 h-9 text-sm shadow-sm backdrop-blur-sm transition-all duration-500">
+          <Button 
+            variant="outline" 
+            onClick={open}
+            className="gap-2 bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 text-slate-700 dark:text-slate-300 rounded-xl px-5 h-9 text-sm shadow-sm backdrop-blur-sm transition-all duration-300"
+          >
             <FolderOpen className="h-4 w-4" /> Open File
           </Button>
 
@@ -187,9 +195,12 @@ export function Dashboard() {
             </button>
           </div>
 
-          <div className="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700/50 overflow-hidden ml-2 shadow-sm transition-colors duration-500">
+          <button 
+            onClick={() => setComingSoonType("profile")}
+            className="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700/50 overflow-hidden ml-2 shadow-sm hover:border-blue-500 dark:hover:border-blue-400 transition-colors duration-300 cursor-pointer"
+          >
             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=4F46E5" alt="User" />
-          </div>
+          </button>
         </header>
 
         {/* Dashboard Content */}
@@ -238,6 +249,16 @@ export function Dashboard() {
           )}
         </AnimatePresence>
       </main>
+
+      <ComingSoonModal 
+        isOpen={comingSoonType !== null} 
+        onClose={() => setComingSoonType(null)} 
+        type={comingSoonType || "profile"} 
+      />
+      <ProPreviewModal 
+        isOpen={isProModalOpen}
+        onClose={() => setIsProModalOpen(false)}
+      />
     </div>
   )
 }
