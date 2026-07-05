@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export function StatusBar() {
-  const { numPages, currentPage, zoom, setZoom, setCurrentPage, activeSidebarTab } = useWorkspaceStore()
+  const { numPages, currentPage, zoom, setZoom, setCurrentPage, activeSidebarTab, toggleFullscreen } = useWorkspaceStore()
 
   const handleZoomOut = () => setZoom(Math.max(0.1, zoom - 0.1))
   const handleZoomIn = () => setZoom(Math.min(5, zoom + 0.1))
@@ -69,7 +69,7 @@ export function StatusBar() {
             <Plus className="h-3 w-3" />
           </Button>
           <div className="w-px h-3 bg-slate-200 dark:bg-white/10 mx-1 transition-colors duration-500" />
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors duration-500">
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="h-7 w-7 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors duration-500">
             <Maximize className="h-3 w-3" />
           </Button>
         </div>

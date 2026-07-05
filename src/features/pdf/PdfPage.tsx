@@ -20,7 +20,7 @@ export function PdfPage({ pageNumber, pdfDocument, scale }: PdfPageProps) {
   const [page, setPage] = useState<PDFPageProxy | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 1131 }) // Default A4 approx
 
-  const { setCurrentPage } = useWorkspaceStore()
+  const { setCurrentPage, searchQuery, searchMode } = useWorkspaceStore()
 
   // Intersection Observer for Virtualization
   useEffect(() => {
@@ -115,6 +115,44 @@ export function PdfPage({ pageNumber, pdfDocument, scale }: PdfPageProps) {
       renderTask.cancel()
     }
   }, [isVisible, page, scale])
+
+  // Apply search highlighting dynamically
+  useEffect(() => {
+    if (!textLayerRef.current || !isVisible) return
+    
+    // We use an interval to check when the spans are finally rendered by PDF.js
+    const highlightInterval = setInterval(() => {
+      const spans = textLayerRef.current?.querySelectorAll("span")
+      if (!spans || spans.length === 0) return // Wait until rendered
+      
+      clearInterval(highlightInterval) // Stop polling once we found the spans
+      
+      // Reset all highlights first
+      spans.forEach(span => {
+        span.style.backgroundColor = ""
+        span.style.color = "transparent"
+        span.style.borderRadius = ""
+      })
+
+      if (searchMode === "document" && searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase()
+        let scrolled = false
+        spans.forEach(span => {
+          if (span.textContent?.toLowerCase().includes(lowerQuery)) {
+            span.style.backgroundColor = "rgba(250, 204, 21, 0.4)" // yellow-400/40 for better contrast over canvas text
+            span.style.borderRadius = "2px"
+            
+            if (!scrolled && useWorkspaceStore.getState().currentPage === pageNumber) {
+              span.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              scrolled = true
+            }
+          }
+        })
+      }
+    }, 200)
+
+    return () => clearInterval(highlightInterval)
+  }, [searchQuery, searchMode, pageNumber, isVisible])
 
   return (
     <div 

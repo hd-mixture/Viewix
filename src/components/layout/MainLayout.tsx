@@ -3,6 +3,9 @@ import { LeftSidebar } from "./LeftSidebar"
 import { RightSidebar } from "./RightSidebar"
 import { StatusBar } from "./StatusBar"
 import { ToastProvider } from "@/components/ui/ToastProvider"
+import { useWorkspaceStore } from "@/store/useWorkspaceStore"
+import { cn } from "@/lib/utils"
+import { Logo } from "@/components/Logo"
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -10,6 +13,8 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
+  const { isFullscreen } = useWorkspaceStore()
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#020617] text-slate-800 dark:text-slate-200 selection:bg-blue-500/30 transition-colors duration-500">
       {/* Premium Dark Gradient Background - Only visible in dark mode */}
@@ -30,19 +35,24 @@ export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZUZpbHRlciI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgibm9pc2VGaWx0ZXIpIi8+PC9zdmc+')] opacity-[0.03] mix-blend-overlay"></div>
       </div>
 
-      <Navbar />
+      {!isFullscreen && <Navbar />}
       
-      <div className="absolute inset-0 top-[88px] bottom-8 flex z-10 px-8 gap-4 pointer-events-none transition-all duration-500">
-        {hasSidebar && <LeftSidebar />}
+      <div className={cn("absolute inset-0 flex z-10 gap-4 pointer-events-none transition-all duration-500", isFullscreen ? "top-0 bottom-0 p-0" : "top-[88px] bottom-8 px-8")}>
+        {hasSidebar && !isFullscreen && <LeftSidebar />}
         
-        <main className="relative flex-1 flex flex-col overflow-hidden z-0 rounded-2xl mb-[52px] pointer-events-auto">
+        <main className={cn("relative flex-1 flex flex-col overflow-hidden z-0 pointer-events-auto", isFullscreen ? "rounded-none mb-0" : "rounded-2xl mb-[52px]")}>
+          {isFullscreen && (
+            <div className="absolute top-8 left-8 z-[9999] pointer-events-none opacity-30 drop-shadow-xl mix-blend-multiply grayscale">
+              <Logo className="scale-125 origin-top-left !text-black" />
+            </div>
+          )}
           {children}
         </main>
         
-        {hasSidebar && <RightSidebar />}
+        {hasSidebar && !isFullscreen && <RightSidebar />}
       </div>
       
-      <StatusBar />
+      {!isFullscreen && <StatusBar />}
       <ToastProvider />
     </div>
   )

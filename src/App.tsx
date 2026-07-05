@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 import { SignatureModal } from "@/components/ui/modals/SignatureModal"
 import { ToastNotification } from "@/components/ui/ToastNotification"
-import { getPdfFromDB } from "@/lib/db"
+import { getPdfFromDB, initDB } from "@/lib/db"
 import * as pdfjsLib from "pdfjs-dist"
 
 // Ensure pdf.js worker is loaded using CDN to prevent Vite resolve errors
@@ -16,30 +16,40 @@ function App() {
   const [isRestoring, setIsRestoring] = useState(true)
 
   useEffect(() => {
+    const handleFullscreenChange = () => {
+      useWorkspaceStore.setState({ isFullscreen: !!document.fullscreenElement })
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+
     const restoreSession = async () => {
+      try {
+        await initDB()
+      } catch (error) {
+        console.error("Failed to initialize DB", error)
+      }
+
       if (pdfDocument) {
         setIsRestoring(false)
         return
       }
 
       try {
-        const stored = localStorage.getItem('viewix_recent')
-        if (stored) {
-          const recents = JSON.parse(stored)
-          if (recents.length > 0) {
-            const lastActiveName = recents[0].name
-            const file = await getPdfFromDB(lastActiveName)
-            if (file) {
-              const url = URL.createObjectURL(file)
-              const config = { url }
-              const loadingTask = pdfjsLib.getDocument(config)
-              const doc = await loadingTask.promise
-              
-              setPdfDocument(doc)
-              setPdfFile(file)
-              
-              setTimeout(() => URL.revokeObjectURL(url), 1000)
-            }
+        const lastActiveName = localStorage.getItem('viewix_last_active_file')
+        if (lastActiveName) {
+          const file = await getPdfFromDB(lastActiveName)
+          if (file) {
+            const url = URL.createObjectURL(file)
+            const config = { url }
+            const loadingTask = pdfjsLib.getDocument(config)
+            const doc = await loadingTask.promise
+            
+            setPdfDocument(doc)
+            setPdfFile(file)
+            
+            setTimeout(() => URL.revokeObjectURL(url), 1000)
+          } else {
+            // Cleanup if file no longer exists
+            localStorage.removeItem('viewix_last_active_file')
           }
         }
       } catch (error) {
@@ -50,6 +60,10 @@ function App() {
     }
 
     restoreSession()
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    }
   }, []) // Empty dependency array ensures it only runs on mount
 
   if (isRestoring) {

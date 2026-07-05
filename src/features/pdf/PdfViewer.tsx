@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import type { PDFDocumentProxy } from "pdfjs-dist"
 import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 import { PdfPage } from "./PdfPage"
 import { Toolbar } from "@/components/Toolbar"
 import { useHotkeys } from "react-hotkeys-hook"
+import { motion, AnimatePresence } from "framer-motion"
 
 export function PdfViewer() {
-  const { pdfDocument, numPages, zoom, setZoom, currentPage, setCurrentPage } = useWorkspaceStore()
+  const { pdfDocument, pdfFile, numPages, zoom, setZoom, currentPage, setCurrentPage } = useWorkspaceStore()
   const containerRef = useRef<HTMLDivElement>(null)
   
   useHotkeys("mod+=", (e) => {
@@ -57,6 +58,18 @@ export function PdfViewer() {
     return () => container.removeEventListener("wheel", handleWheel)
   }, [zoom, setZoom])
 
+  const lastScrolledPageRef = useRef(currentPage)
+
+  useEffect(() => {
+    if (currentPage !== lastScrolledPageRef.current) {
+      const pageEl = document.getElementById(`page-${currentPage}`)
+      if (pageEl) {
+        pageEl.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+      lastScrolledPageRef.current = currentPage
+    }
+  }, [currentPage])
+
   const handleScroll = () => {
     const container = containerRef.current
     if (!container) return
@@ -80,6 +93,7 @@ export function PdfViewer() {
     })
 
     if (mostVisiblePage !== currentPage && !isNaN(mostVisiblePage)) {
+      lastScrolledPageRef.current = mostVisiblePage
       setCurrentPage(mostVisiblePage)
     }
   }
@@ -93,15 +107,26 @@ export function PdfViewer() {
         onScroll={handleScroll}
         className="absolute inset-0 overflow-y-auto overflow-x-auto bg-transparent px-12 pt-12 pb-[160px] flex flex-col items-center gap-12 z-0 custom-scrollbar"
       >
-        {Array.from({ length: numPages }).map((_, index) => (
-          <div id={`page-${index + 1}`} key={index}>
-            <PdfPage 
-              pageNumber={index + 1} 
-              pdfDocument={pdfDocument} 
-              scale={zoom}
-            />
-          </div>
-        ))}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pdfFile?.name || "document"}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="flex flex-col items-center gap-12 w-full"
+          >
+            {Array.from({ length: numPages }).map((_, index) => (
+              <div id={`page-${index + 1}`} key={index}>
+                <PdfPage 
+                  pageNumber={index + 1} 
+                  pdfDocument={pdfDocument} 
+                  scale={zoom}
+                />
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
       <Toolbar />
     </>

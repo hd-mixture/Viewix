@@ -176,6 +176,21 @@ interface WorkspaceState {
   }
   setEraserSettings: (settings: Partial<{ mode: 'click' | 'drag', eraseLocked: boolean, highlightFirst: boolean, brushSize: number }>) => void
   deleteAnnotations: (ids: string[]) => void
+  
+  activeDashboardTab: string
+  setActiveDashboardTab: (tab: string) => void
+  openedFromDashboard: boolean
+  setOpenedFromDashboard: (val: boolean) => void
+  isFullscreen: boolean
+  toggleFullscreen: () => void
+  isSearchFocused: boolean
+  setIsSearchFocused: (val: boolean) => void
+  searchMode: "tools" | "document"
+  setSearchMode: (mode: "tools" | "document") => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  searchHistory: string[]
+  addSearchHistory: (query: string) => void
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -197,6 +212,38 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   selectedAnnotationId: null,
   
   activeSidebarTab: "workspace",
+  activeDashboardTab: "home",
+  openedFromDashboard: false,
+  isFullscreen: false,
+  isSearchFocused: false,
+  searchMode: "tools",
+  searchQuery: "",
+  searchHistory: [],
+  setIsSearchFocused: (val) => set({ isSearchFocused: val }),
+  setSearchMode: (mode) => set({ searchMode: mode }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  addSearchHistory: (query) => set((state) => {
+    if (!query.trim()) return state
+    const newHistory = [query, ...state.searchHistory.filter(q => q !== query)].slice(0, 5)
+    return { searchHistory: newHistory }
+  }),
+  setOpenedFromDashboard: (val) => set({ openedFromDashboard: val }),
+  setActiveDashboardTab: (tab) => set({ activeDashboardTab: tab }),
+  toggleFullscreen: () => {
+    const isFull = !get().isFullscreen
+    if (isFull) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error("Error attempting to enable fullscreen:", err)
+      })
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => {
+          console.error("Error attempting to exit fullscreen:", err)
+        })
+      }
+    }
+    set({ isFullscreen: isFull })
+  },
 
   toastMessage: null,
   showToast: (title, message, duration, action) => {
@@ -624,23 +671,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     return state
   }),
   setSelectedAnnotationId: (id) => set({ selectedAnnotationId: id }),
-  resetWorkspace: () => set({ 
-    pdfFile: null, 
-    pdfDocument: null, 
-    numPages: 0, 
-    currentPage: 1, 
-    zoom: 1, 
-    rotation: 0,
-    selectedPages: [],
-    lastSelectedPage: null,
-    isOrganizeMode: false,
-    activeTool: "pointer",
-    annotations: [],
-    selectedAnnotationId: null,
-    historyLog: [],
-    pastDocuments: [],
-    futureDocuments: [],
-    pastAnnotations: [],
-    futureAnnotations: []
-  }),
+  resetWorkspace: () => {
+    localStorage.removeItem('viewix_last_active_file')
+    set({ 
+      pdfFile: null, 
+      pdfDocument: null, 
+      numPages: 0, 
+      currentPage: 1, 
+      zoom: 1, 
+      rotation: 0,
+      selectedPages: [],
+      lastSelectedPage: null,
+      isOrganizeMode: false,
+      activeTool: "pointer",
+      annotations: [],
+      selectedAnnotationId: null,
+      historyLog: [],
+      pastDocuments: [],
+      futureDocuments: [],
+      pastAnnotations: [],
+      futureAnnotations: [],
+      openedFromDashboard: false
+    })
+  },
 }))
