@@ -11,6 +11,17 @@ const upcomingFeatures = [
 
 const changelog = [
   {
+    version: "v2.3.0",
+    date: "July 2026",
+    changes: [
+      "Redesigned Template Gallery with premium animated category navigation",
+      "Added Starred Templates grouping and robust recent file integration",
+      "Introduced official PDF-styled printable Keyboard Shortcuts layout",
+      "Fixed dark/light mode button contrasts in dashboard tabs",
+      "Fixed template copy persistence and timestamp tracking"
+    ]
+  },
+  {
     version: "v2.2.0",
     date: "July 2026",
     changes: [
@@ -55,7 +66,7 @@ export function AboutTab() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">About Viewix</h1>
-          <p className="text-slate-500 dark:text-slate-400">Version 2.1.0</p>
+          <p className="text-slate-500 dark:text-slate-400">Version 2.3.0</p>
         </div>
       </div>
 

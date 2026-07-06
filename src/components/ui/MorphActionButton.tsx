@@ -178,7 +178,7 @@ export function MorphActionButton({ onExport }: MorphActionButtonProps) {
             "h-full flex items-center justify-center relative overflow-hidden transition-colors duration-300",
             (hoveredSegment === 'export' || hoveredSegment === null) 
               ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white" 
-              : "bg-slate-800/80 backdrop-blur-md text-white/70 hover:text-white"
+              : "bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 dark:text-white/70 hover:text-slate-900 dark:hover:text-white"
           )}
           style={{ width: exportSegmentWidth }}
           onMouseEnter={() => !isMobile && setHoveredSegment('export')}
@@ -215,7 +215,7 @@ export function MorphActionButton({ onExport }: MorphActionButtonProps) {
         {/* Divider */}
         <motion.div
           layout
-          className="absolute left-1/2 -translate-x-1/2 w-[1px] h-[70%] bg-white/20 backdrop-blur-sm z-10 pointer-events-none"
+          className="absolute left-1/2 -translate-x-1/2 w-[1px] h-[70%] bg-slate-300/50 dark:bg-white/20 backdrop-blur-sm z-10 pointer-events-none transition-colors"
           style={{
             boxShadow: '0 0 8px rgba(255,255,255,0.3)',
             left: exportSegmentWidth
@@ -229,7 +229,7 @@ export function MorphActionButton({ onExport }: MorphActionButtonProps) {
             "h-full flex items-center justify-center relative overflow-hidden transition-colors duration-300",
             hoveredSegment === 'upload' 
               ? "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white" 
-              : "bg-slate-800/80 backdrop-blur-md text-white/70 hover:text-white"
+              : "bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md text-slate-500 dark:text-white/70 hover:text-slate-900 dark:hover:text-white"
           )}
           style={{ width: uploadSegmentWidth }}
           onMouseEnter={() => !isMobile && setHoveredSegment('upload')}

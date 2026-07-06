@@ -228,8 +228,23 @@ export function RightSidebar() {
                 </div>
               )}
               {hasOpacity && props.opacity !== undefined && (
-                <div className="mb-2">
+                <div className="mb-4">
                   <SliderControl label="Opacity" value={props.opacity} min={0.1} max={1} step={0.1} onChange={(v) => handleChange("opacity", v)} suffix="%" displayMultiplier={100} />
+                </div>
+              )}
+              {hasDensity && (
+                <div className="mb-4 space-y-2">
+                  <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Cloud Shape</label>
+                  <SegmentedControl 
+                    options={['rectangle', 'circle']} 
+                    value={props.cloudShape || 'rectangle'} 
+                    onChange={(v) => handleChange("cloudShape", v)} 
+                  />
+                </div>
+              )}
+              {hasDensity && props.density !== undefined && (
+                <div className="mb-2">
+                  <SliderControl label="Cloud Density" value={props.density} min={1} max={10} onChange={(v) => handleChange("density", v)} suffix="" />
                 </div>
               )}
             </Accordion>
@@ -274,11 +289,6 @@ export function RightSidebar() {
                 {hasDashStyle && props.dashStyle !== undefined && (
                   <div className="mb-4">
                     <SelectControl label="Dash Style" value={props.dashStyle} options={['solid', 'dashed', 'dotted']} onChange={(v) => handleChange("dashStyle", v)} />
-                  </div>
-                )}
-                {hasDensity && props.density !== undefined && (
-                  <div className="mb-2">
-                    <SliderControl label="Cloud Density" value={props.density} min={1} max={10} onChange={(v) => handleChange("density", v)} suffix="" />
                   </div>
                 )}
               </Accordion>

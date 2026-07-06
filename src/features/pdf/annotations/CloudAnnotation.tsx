@@ -8,42 +8,67 @@ interface CloudAnnotationProps {
   isSelected: boolean
 }
 
-function generateCloudPoints(width: number, height: number, density: number): number[] {
+function generateCloudPoints(width: number, height: number, density: number, shape: "rectangle" | "circle" = "rectangle"): number[] {
   const points: number[] = []
-  // Density: 1 (few big bumps) to 10 (many small bumps)
-  // Let's say bump size is inversely related to density
-  const bumpCountX = Math.max(2, Math.floor((width / 100) * density * 3))
-  const bumpCountY = Math.max(2, Math.floor((height / 100) * density * 3))
   
-  const stepX = width / bumpCountX
-  const stepY = height / bumpCountY
-  const amplitude = Math.min(stepX, stepY) * 0.5 // How far the bumps poke out
+  if (shape === "circle") {
+    // Generate points along an ellipse
+    const rx = width / 2
+    const ry = height / 2
+    const cx = rx
+    const cy = ry
+    
+    // Density maps to number of bumps (e.g. 5 to 20)
+    const numBumps = Math.max(6, Math.floor(density * 4))
+    const stepsPerBump = 4
+    const totalSteps = numBumps * stepsPerBump
+    
+    // Average bump amplitude
+    const amplitude = Math.min(rx, ry) * 0.15 * (5 / density)
+    
+    for (let i = 0; i <= totalSteps; i++) {
+      const angle = (i / totalSteps) * Math.PI * 2
+      // Sine wave superimposed on the radius
+      const bumpPhase = (i / stepsPerBump) * Math.PI * 2
+      const r_offset = Math.sin(bumpPhase) * amplitude
+      
+      const rCurrentX = rx + r_offset
+      const rCurrentY = ry + r_offset
+      
+      const px = cx + rCurrentX * Math.cos(angle)
+      const py = cy + rCurrentY * Math.sin(angle)
+      points.push(px, py)
+    }
+  } else {
+    // Rectangle shape
+    const bumpCountX = Math.max(2, Math.floor((width / 100) * density * 3))
+    const bumpCountY = Math.max(2, Math.floor((height / 100) * density * 3))
+    
+    const stepX = width / bumpCountX
+    const stepY = height / bumpCountY
+    const amplitude = Math.min(stepX, stepY) * 0.5 
 
-  // Top edge (L -> R)
-  for (let i = 0; i <= bumpCountX; i++) {
-    const x = i * stepX
-    const y = (i % 2 !== 0 && i !== bumpCountX) ? -amplitude : 0
-    points.push(x, y)
+    for (let i = 0; i <= bumpCountX; i++) {
+      const x = i * stepX
+      const y = (i % 2 !== 0 && i !== bumpCountX) ? -amplitude : 0
+      points.push(x, y)
+    }
+    for (let i = 1; i <= bumpCountY; i++) {
+      const x = width + ((i % 2 !== 0 && i !== bumpCountY) ? amplitude : 0)
+      const y = i * stepY
+      points.push(x, y)
+    }
+    for (let i = 1; i <= bumpCountX; i++) {
+      const x = width - i * stepX
+      const y = height + ((i % 2 !== 0 && i !== bumpCountX) ? amplitude : 0)
+      points.push(x, y)
+    }
+    for (let i = 1; i < bumpCountY; i++) {
+      const x = (i % 2 !== 0) ? -amplitude : 0
+      const y = height - i * stepY
+      points.push(x, y)
+    }
   }
-  // Right edge (T -> B)
-  for (let i = 1; i <= bumpCountY; i++) {
-    const x = width + ((i % 2 !== 0 && i !== bumpCountY) ? amplitude : 0)
-    const y = i * stepY
-    points.push(x, y)
-  }
-  // Bottom edge (R -> L)
-  for (let i = 1; i <= bumpCountX; i++) {
-    const x = width - i * stepX
-    const y = height + ((i % 2 !== 0 && i !== bumpCountX) ? amplitude : 0)
-    points.push(x, y)
-  }
-  // Left edge (B -> T)
-  for (let i = 1; i < bumpCountY; i++) {
-    const x = (i % 2 !== 0) ? -amplitude : 0
-    const y = height - i * stepY
-    points.push(x, y)
-  }
-  
   return points
 }
 
@@ -92,7 +117,7 @@ export function CloudAnnotation({ annotation, isSelected }: CloudAnnotationProps
 
   const w = Math.max(20, annotation.width || 0)
   const h = Math.max(20, annotation.height || 0)
-  const points = generateCloudPoints(w, h, annotation.density || 3)
+  const points = generateCloudPoints(w, h, annotation.density || 3, annotation.cloudShape || "rectangle")
 
   return (
     <Group 

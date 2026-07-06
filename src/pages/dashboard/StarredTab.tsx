@@ -87,10 +87,10 @@ export function StarredTab({ onOpenFile }: StarredTabProps) {
               <span className="text-sm font-medium text-slate-600 dark:text-slate-300 mr-2">
                 {selectedIds.size} selected
               </span>
-              <Button variant="outline" size="sm" className="h-9 gap-2">
+              <Button variant="outline" size="sm" className="h-9 gap-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm">
                 <Download className="h-4 w-4" /> Export
               </Button>
-              <Button variant="destructive" size="sm" className="h-9 gap-2" onClick={() => {
+              <Button variant="destructive" size="sm" className="h-9 gap-2 shadow-sm" onClick={() => {
                 const newFiles = files.filter(f => !selectedIds.has(f.id))
                 setFiles(newFiles)
                 localStorage.setItem('viewix_starred', JSON.stringify(newFiles))

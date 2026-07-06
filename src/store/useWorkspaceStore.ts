@@ -4,6 +4,17 @@ import { savePdfToDB } from "@/lib/db"
 
 export type Tool = "pointer" | "hand" | "text" | "rectangle" | "oval" | "arrow" | "cloud" | "highlight" | "freedraw" | "line" | "eraser" | "eraser_stroke" | "sticky_note" | "signature"
 
+export interface Template {
+  id: string
+  title: string
+  category: string
+  isPro?: boolean
+  thumbnail: string
+  description: string
+  orientation?: "portrait" | "landscape"
+  annotations?: Partial<Annotation>[]
+}
+
 export interface Annotation {
   id: string
   pageNumber: number
@@ -45,6 +56,7 @@ export interface Annotation {
   
   // Cloud
   density?: number
+  cloudShape?: "rectangle" | "circle"
   
   // Sticky Note
   author?: string
@@ -72,7 +84,7 @@ const defaultToolSettings: ToolDefaults = {
   rectangle: { color: "#3b82f6", fillColor: "transparent", strokeWidth: 2, borderStyle: "solid", cornerRadius: 0, opacity: 1, shadow: false },
   oval: { color: "#ef4444", fillColor: "transparent", strokeWidth: 2, borderStyle: "solid", opacity: 1, shadow: false },
   arrow: { color: "#22c55e", strokeWidth: 2, arrowHead: "arrow", dashStyle: "solid", opacity: 1 },
-  cloud: { color: "#8b5cf6", fillColor: "transparent", strokeWidth: 2, density: 3, opacity: 1, shadow: false },
+  cloud: { color: "#8b5cf6", fillColor: "transparent", strokeWidth: 2, density: 3, cloudShape: "rectangle", opacity: 1, shadow: false },
   highlight: { color: "#fef08a", opacity: 0.5, blendMode: "multiply" },
   freedraw: { color: "#000000", strokeWidth: 2, opacity: 1 },
   line: { color: "#64748b", strokeWidth: 2, dashStyle: "solid", opacity: 1 },
@@ -191,6 +203,32 @@ interface WorkspaceState {
   setSearchQuery: (query: string) => void
   searchHistory: string[]
   addSearchHistory: (query: string) => void
+
+  // Templates
+  favoriteTemplates: string[]
+  recentTemplates: Template[]
+  myTemplates: Template[]
+  toggleFavoriteTemplate: (id: string) => void
+  addRecentTemplate: (template: Template) => void
+  saveCurrentToRecent: (title: string, newAnnotations?: Annotation[]) => void
+  duplicateTemplate: (template: Template) => void
+  deleteMyTemplate: (id: string) => void
+  
+  activeTemplateId: string | null
+  setActiveTemplateId: (id: string | null) => void
+  
+  isSaving: boolean
+  setIsSaving: (val: boolean) => void
+}
+
+const loadFromStorage = (key: string, defaultValue: any) => {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    return defaultValue;
+  }
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -200,6 +238,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   currentPage: 1,
   zoom: 1,
   rotation: 0,
+  
+  isSaving: false,
+  setIsSaving: (val) => set({ isSaving: val }),
   
   selectedPages: [],
   lastSelectedPage: null,
@@ -214,6 +255,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   activeSidebarTab: "workspace",
   activeDashboardTab: "home",
   openedFromDashboard: false,
+  activeTemplateId: null,
+  setActiveTemplateId: (id) => set({ activeTemplateId: id }),
   isFullscreen: false,
   isSearchFocused: false,
   searchMode: "tools",
@@ -229,6 +272,66 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   }),
   setOpenedFromDashboard: (val) => set({ openedFromDashboard: val }),
   setActiveDashboardTab: (tab) => set({ activeDashboardTab: tab }),
+  
+  favoriteTemplates: loadFromStorage('viewix_fav_templates', []),
+  recentTemplates: loadFromStorage('viewix_recent_templates', []),
+  myTemplates: loadFromStorage('viewix_my_templates', []),
+  toggleFavoriteTemplate: (id) => set((state) => {
+    const newFavs = state.favoriteTemplates.includes(id) 
+      ? state.favoriteTemplates.filter(t => t !== id) 
+      : [...state.favoriteTemplates, id]
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_fav_templates', JSON.stringify(newFavs))
+    return { favoriteTemplates: newFavs }
+  }),
+  addRecentTemplate: (template) => set((state) => {
+    const filtered = state.recentTemplates.filter(t => t.id !== template.id)
+    const newRecents = [template, ...filtered].slice(0, 10)
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_recent_templates', JSON.stringify(newRecents))
+    return { recentTemplates: newRecents }
+  }),
+  saveCurrentToRecent: (title, newAnnotations) => set((state) => {
+    if (!state.openedFromDashboard) return state;
+    const anns = newAnnotations || state.annotations
+    const template: Template = {
+      id: `recent-${title.replace(/\s+/g, '_')}`,
+      title: title || "Untitled Document",
+      category: "Recent",
+      thumbnail: "/templates/modern_invoice.png",
+      annotations: anns,
+      orientation: state.numPages > 0 && state.pdfDocument ? "portrait" : "portrait"
+    }
+    const filtered = state.recentTemplates.filter(t => t.title !== template.title)
+    const newRecents = [template, ...filtered].slice(0, 10)
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_recent_templates', JSON.stringify(newRecents))
+    
+    // Also update myTemplates if this is a copy
+    let newMyTemplates = state.myTemplates;
+    if (state.activeTemplateId && state.activeTemplateId.startsWith('copy-')) {
+      newMyTemplates = state.myTemplates.map(t => 
+        t.id === state.activeTemplateId 
+          ? { ...t, annotations: anns, title: title || t.title } 
+          : t
+      );
+      if (typeof window !== 'undefined') localStorage.setItem('viewix_my_templates', JSON.stringify(newMyTemplates))
+    }
+    
+    return { recentTemplates: newRecents, myTemplates: newMyTemplates }
+  }),
+  duplicateTemplate: (template) => set((state) => {
+    const newTemplate = { ...template, id: `copy-${Date.now()}`, title: `${template.title} (Copy)` }
+    const newMyTemplates = [...state.myTemplates, newTemplate]
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_my_templates', JSON.stringify(newMyTemplates))
+    
+    const newRecents = [newTemplate, ...state.recentTemplates.filter(t => t.id !== newTemplate.id)].slice(0, 10)
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_recent_templates', JSON.stringify(newRecents))
+    
+    return { myTemplates: newMyTemplates, recentTemplates: newRecents }
+  }),
+  deleteMyTemplate: (id) => set((state) => {
+    const newMyTemplates = state.myTemplates.filter(t => t.id !== id)
+    if (typeof window !== 'undefined') localStorage.setItem('viewix_my_templates', JSON.stringify(newMyTemplates))
+    return { myTemplates: newMyTemplates }
+  }),
   toggleFullscreen: () => {
     const isFull = !get().isFullscreen
     if (isFull) {
@@ -295,9 +398,23 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   }),
   
   setPdfFile: (file) => {
-    set({ pdfFile: file, hasShownHighlightWarning: false })
+    let savedAnnotations: Annotation[] = []
+    if (file && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`viewix_annotations_${file.name}`)
+        if (stored) savedAnnotations = JSON.parse(stored)
+      } catch (e) {}
+    }
+    set({ 
+      pdfFile: file, 
+      hasShownHighlightWarning: false,
+      annotations: savedAnnotations,
+      pastAnnotations: [],
+      futureAnnotations: [],
+      historyLog: []
+    })
     // Save the actual file blob to IndexedDB for the recent files feature
-    savePdfToDB(file.name, file)
+    if (file) savePdfToDB(file.name, file)
   },
   setPdfDocument: (doc) => {
     set({ pdfDocument: doc, numPages: doc.numPages })
@@ -325,18 +442,36 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   setLastSelectedPage: (page) => set({ lastSelectedPage: page }),
   setIsOrganizeMode: (val) => set({ isOrganizeMode: val }),
   
-  addAnnotation: (annotation) => set((state) => ({ 
-    pastAnnotations: [...state.pastAnnotations, state.annotations],
-    futureAnnotations: [],
-    historyLog: [...state.historyLog, "annotation"],
-    annotations: [...state.annotations, annotation] 
-  })),
-  updateAnnotation: (id, updates) => set((state) => ({
-    pastAnnotations: [...state.pastAnnotations, state.annotations],
-    futureAnnotations: [],
-    historyLog: [...state.historyLog, "annotation"],
-    annotations: state.annotations.map(a => a.id === id ? { ...a, ...updates } : a)
-  })),
+  addAnnotation: (annotation) => set((state) => {
+    const next = [...state.annotations, annotation]
+    
+    // Save to recent if it's a template edit
+    if (state.openedFromDashboard && typeof window !== 'undefined') {
+      get().saveCurrentToRecent(state.pdfFile?.name || "Untitled Document")
+    }
+    
+    return {
+      annotations: next,
+      pastAnnotations: [...state.pastAnnotations, state.annotations].slice(-50),
+      futureAnnotations: [],
+      historyLog: [...state.historyLog, "annotation"]
+    }
+  }),
+  updateAnnotation: (id, updates) => set((state) => {
+    const next = state.annotations.map(a => a.id === id ? { ...a, ...updates } : a)
+    
+    // Save to recent if it's a template edit
+    if (state.openedFromDashboard && typeof window !== 'undefined') {
+      get().saveCurrentToRecent(state.pdfFile?.name || "Untitled Document")
+    }
+
+    return {
+      annotations: next,
+      pastAnnotations: [...state.pastAnnotations, state.annotations].slice(-50),
+      futureAnnotations: [],
+      historyLog: [...state.historyLog, "annotation"]
+    }
+  }),
   deleteAnnotation: (id) => set((state) => ({
     pastAnnotations: [...state.pastAnnotations, state.annotations],
     futureAnnotations: [],
@@ -695,3 +830,24 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     })
   },
 }))
+
+if (typeof window !== 'undefined') {
+  let saveTimeout: any;
+  useWorkspaceStore.subscribe((state, prevState) => {
+    if (state.annotations !== prevState.annotations && state.pdfFile) {
+      // 1. Immediately update localStorage for general files
+      localStorage.setItem(`viewix_annotations_${state.pdfFile.name}`, JSON.stringify(state.annotations))
+      
+      // 2. Set saving state and update recent templates if needed
+      useWorkspaceStore.getState().setIsSaving(true)
+      
+      clearTimeout(saveTimeout)
+      saveTimeout = setTimeout(() => {
+        if (state.openedFromDashboard) {
+           useWorkspaceStore.getState().saveCurrentToRecent(state.pdfFile!.name.replace('.pdf', ''), state.annotations)
+        }
+        useWorkspaceStore.getState().setIsSaving(false)
+      }, 500)
+    }
+  })
+}
