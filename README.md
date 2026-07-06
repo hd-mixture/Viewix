@@ -4,7 +4,6 @@
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/hd-mixture/Viewix/blob/16ca8e9b381c3afb5bc47027a1be75d404cb37db/public/Viewix_light-sidebar_logo.png?raw=true">
     <img src="https://github.com/hd-mixture/Viewix/blob/16ca8e9b381c3afb5bc47027a1be75d404cb37db/public/Viewix_light-sidebar_logo.png?raw=true" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
   </picture>
-  <p><strong>Read. Mark. Collaborate.</strong></p>
   <p>A beautifully designed, high-performance web-based document workspace.</p>
 
   <a href="https://viewix-wine.vercel.app/" target="_blank">
