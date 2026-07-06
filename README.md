@@ -1,5 +1,9 @@
 <div align="center">
-  <img src="./public/Viewix_light_logo.png" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/Viewix_dark_logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="public/Viewix_light_logo.png">
+    <img src="public/Viewix_light_logo.png" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
+  </picture>
   <p><strong>Read. Mark. Collaborate.</strong></p>
   <p>A beautifully designed, high-performance web-based document workspace.</p>
 
