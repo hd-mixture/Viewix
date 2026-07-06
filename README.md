@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/hd-mixture/Viewix/blob/main/public/Viewix_dark_logo.png?raw=true">
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/hd-mixture/Viewix/blob/main/public/Viewix_light_logo.png?raw=true">
-    <img src="https://github.com/hd-mixture/Viewix/blob/main/public/Viewix_light_logo.png?raw=true" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
+    <img src="https://github.com/hd-mixture/Viewix/blob/main/public/Viewix_light_logo.png?raw=true" alt="Viewix Logo" width="220" style="margin-bottom: 20px;" />
   </picture>
   <p>A beautifully designed, high-performance web-based document workspace.</p>
 
