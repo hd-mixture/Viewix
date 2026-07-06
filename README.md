@@ -1,8 +1,8 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hd-mixture/Viewix/main/public/Viewix_dark_logo.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/hd-mixture/Viewix/main/public/Viewix_light_logo.png">
-    <img src="https://raw.githubusercontent.com/hd-mixture/Viewix/main/public/Viewix_light_logo.png" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://viewix-wine.vercel.app/Viewix_dark_logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://viewix-wine.vercel.app/Viewix_light_logo.png">
+    <img src="https://viewix-wine.vercel.app/Viewix_light_logo.png" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
   </picture>
   <p><strong>Read. Mark. Collaborate.</strong></p>
   <p>A beautifully designed, high-performance web-based document workspace.</p>
