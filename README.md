@@ -1,8 +1,5 @@
 <div align="center">
-  <div style="background: #2563EB; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/><path d="M21 9H3"/><path d="M3 15h18"/><path d="M9 21v-2"/><path d="M15 21v-2"/></svg>
-  </div>
-  <h1>Viewix</h1>
+  <img src="./public/Viewix_light_logo.png" alt="Viewix Logo" width="300" style="margin-bottom: 20px;" />
   <p><strong>Read. Mark. Collaborate.</strong></p>
   <p>A beautifully designed, high-performance web-based document workspace.</p>
 
