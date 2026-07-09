@@ -1,6 +1,8 @@
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { Info, MessageCircle, Globe, Heart, CheckCircle2, History, Sparkles, Clock } from "lucide-react"
+import { Info, MessageCircle, Globe, Heart, CheckCircle2, History, Sparkles, Clock, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 
 const upcomingFeatures = [
   "Viewix Pro: Unlimited Cloud Sync & AI Document Summaries",
@@ -66,6 +68,19 @@ const changelog = [
 ]
 
 export function AboutTab() {
+  const [isChecking, setIsChecking] = useState(false)
+  const [lastChecked, setLastChecked] = useState<Date | null>(null)
+  const showToast = useWorkspaceStore(state => state.showToast)
+
+  const handleCheckUpdate = () => {
+    setIsChecking(true)
+    setTimeout(() => {
+      setIsChecking(false)
+      setLastChecked(new Date())
+      showToast("Up to date", "You are running the latest version of Viewix (v2.4.0).", 3000)
+    }, 1500)
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -95,11 +110,26 @@ export function AboutTab() {
                 A modern, beautiful, and powerful PDF workspace built for the web. Experience lightning-fast annotations and a seamless user interface.
               </p>
               
-              <div className="flex items-center gap-4">
-                <Button className="bg-white text-blue-600 hover:bg-blue-50 border-0">
-                  Check for Updates
+              <div className="flex items-center gap-4 mt-8">
+                <Button 
+                  onClick={handleCheckUpdate}
+                  disabled={isChecking}
+                  className="bg-white text-blue-600 hover:bg-blue-50 border-0 flex items-center gap-2 min-w-[160px] justify-center transition-all disabled:opacity-90"
+                >
+                  {isChecking ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    "Check for Updates"
+                  )}
                 </Button>
-                <span className="text-sm text-blue-200">Up to date</span>
+                <span className="text-sm text-blue-200">
+                  {lastChecked 
+                    ? `Last checked: ${lastChecked.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+                    : "Up to date"}
+                </span>
               </div>
             </div>
           </div>
