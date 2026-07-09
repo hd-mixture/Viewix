@@ -69,39 +69,41 @@ export function StarredTab({ onOpenFile }: StarredTabProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 p-8 lg:p-12 flex flex-col w-full h-full relative z-10"
+      className="flex-1 px-5 py-4 md:p-8 lg:p-12 flex flex-col w-full h-full relative z-10"
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Starred Files</h1>
-          <p className="text-slate-500 dark:text-slate-400">Your favorite and most important documents.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2 tracking-tight">Starred Files</h1>
+          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Your favorite and most important documents.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
           {selectedIds.size > 0 && (
             <motion.div 
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 mr-4"
+              className="flex items-center gap-2 md:mr-4 justify-between sm:justify-start"
             >
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-300 mr-2">
+              <span className="text-xs md:text-sm font-medium text-slate-600 dark:text-slate-300 mr-1 md:mr-2">
                 {selectedIds.size} selected
               </span>
-              <Button variant="outline" size="sm" className="h-9 gap-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm">
-                <Download className="h-4 w-4" /> Export
-              </Button>
-              <Button variant="destructive" size="sm" className="h-9 gap-2 shadow-sm" onClick={() => {
-                const newFiles = files.filter(f => !selectedIds.has(f.id))
-                setFiles(newFiles)
-                localStorage.setItem('viewix_starred', JSON.stringify(newFiles))
-                setSelectedIds(new Set())
-              }}>
-                <Trash2 className="h-4 w-4" /> Remove
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="h-8 md:h-9 gap-1 md:gap-2 px-2 md:px-3 text-xs md:text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm">
+                  <Download className="h-3 w-3 md:h-4 md:w-4" /> Export
+                </Button>
+                <Button variant="destructive" size="sm" className="h-8 md:h-9 gap-1 md:gap-2 px-2 md:px-3 text-xs md:text-sm shadow-sm" onClick={() => {
+                  const newFiles = files.filter(f => !selectedIds.has(f.id))
+                  setFiles(newFiles)
+                  localStorage.setItem('viewix_starred', JSON.stringify(newFiles))
+                  setSelectedIds(new Set())
+                }}>
+                  <Trash2 className="h-3 w-3 md:h-4 md:w-4" /> Remove
+                </Button>
+              </div>
             </motion.div>
           )}
 
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
@@ -123,7 +125,7 @@ export function StarredTab({ onOpenFile }: StarredTabProps) {
           <p className="text-slate-500 dark:text-slate-400 mb-8">Star your important documents to access them quickly from here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto pb-20 custom-scrollbar pr-2">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto pb-20 custom-scrollbar md:pr-2">
           <AnimatePresence mode="popLayout">
             {filteredFiles.map((file, i) => (
               <motion.div
@@ -135,47 +137,47 @@ export function StarredTab({ onOpenFile }: StarredTabProps) {
                 key={file.id}
                 onClick={() => handleOpenStarred(file)}
                 className={cn(
-                  "group relative bg-white dark:bg-slate-900/40 border rounded-2xl p-4 transition-all cursor-pointer flex flex-col",
+                  "group relative bg-white dark:bg-slate-900/40 border rounded-2xl p-2.5 md:p-4 transition-all cursor-pointer flex flex-col",
                   selectedIds.has(file.id) 
                     ? "border-amber-500 bg-amber-50/30 dark:bg-amber-500/5 shadow-md" 
                     : "border-slate-200 dark:border-slate-800/60 hover:shadow-md hover:border-amber-200 dark:hover:border-amber-900/50"
                 )}
               >
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10 bg-white/80 dark:bg-slate-900/80 md:bg-transparent rounded-lg backdrop-blur-sm md:backdrop-blur-none shadow-sm md:shadow-none p-1 md:p-0">
                   <button 
                     onClick={(e) => { e.stopPropagation(); toggleSelect(file.id) }}
-                    className="text-slate-400 hover:text-amber-500 transition-colors"
+                    className="text-slate-400 hover:text-amber-500 transition-colors flex items-center justify-center"
                   >
                     {selectedIds.has(file.id) ? (
-                      <CheckSquare className="w-5 h-5 text-amber-500" />
+                      <CheckSquare className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
                     ) : (
-                      <Square className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <Square className="w-4 h-4 md:w-5 md:h-5 opacity-40 md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                     )}
                   </button>
                 </div>
                 
-                <div className="absolute top-4 right-4 z-10">
+                <div className="absolute top-2 right-2 md:top-4 md:right-4 z-10 bg-white/80 dark:bg-slate-900/80 md:bg-transparent rounded-lg backdrop-blur-sm md:backdrop-blur-none shadow-sm md:shadow-none p-1 md:p-0">
                   <button 
                     onClick={(e) => { e.stopPropagation(); removeStar(file.id) }}
-                    className="text-amber-500 hover:scale-110 transition-transform"
+                    className="text-amber-500 hover:scale-110 transition-transform flex items-center justify-center"
                     title="Remove from Starred"
                   >
-                    <Star className="w-5 h-5 fill-amber-500" />
+                    <Star className="w-4 h-4 md:w-5 md:h-5 fill-amber-500" />
                   </button>
                 </div>
 
-                <div className="w-full aspect-[4/3] bg-amber-50/50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center mb-4 mt-2">
-                  <FileText className="w-10 h-10 text-amber-500/50" />
+                <div className="w-full aspect-square md:aspect-[4/3] bg-amber-50/50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center mb-3 md:mb-4 mt-2 md:mt-2 group-hover:scale-[1.02] transition-transform">
+                  <FileText className="w-8 h-8 md:w-10 md:h-10 text-amber-500/50" />
                 </div>
                 
-                <div className="flex flex-col min-w-0">
-                  <h4 className="font-medium text-slate-900 dark:text-white text-sm truncate mb-1" title={file.name}>
+                <div className="flex flex-col min-w-0 px-0.5 md:px-0">
+                  <h4 className="font-semibold text-slate-900 dark:text-white text-[11px] md:text-sm truncate mb-0.5 md:mb-1" title={file.name}>
                     {file.name}
                   </h4>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <span>{formatSize(file.size)}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                  <div className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
                     <span>{new Date(file.timestamp).toLocaleDateString()}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700 hidden md:block" />
+                    <span>{formatSize(file.size)}</span>
                   </div>
                 </div>
               </motion.div>

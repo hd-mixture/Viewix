@@ -186,6 +186,7 @@ export function AnnotationLayer({ pageNumber, width, height, scale }: Annotation
       const clickedOnEmpty = e.target === stage
       if (clickedOnEmpty) {
         setSelectedAnnotationId(null)
+        useWorkspaceStore.getState().setShowAdvancedProperties(false)
       }
       return
     }
@@ -384,6 +385,7 @@ export function AnnotationLayer({ pageNumber, width, height, scale }: Annotation
     addAnnotation(finalAnnotation)
     setCurrentAnnotation(null)
     setSelectedAnnotationId(finalAnnotation.id)
+    useWorkspaceStore.getState().setActiveTool("pointer")
   }
 
   const pageAnnotations = annotations
@@ -428,7 +430,10 @@ export function AnnotationLayer({ pageNumber, width, height, scale }: Annotation
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={() => setBrushPos(null)}
-        style={{ cursor }}
+        style={{ 
+          cursor,
+          touchAction: activeTool !== 'pointer' && activeTool !== 'hand' && activeTool !== 'highlight' ? 'none' : 'auto'
+        }}
       >
         <Layer scaleX={scale} scaleY={scale}>
           {renderAnnotations.map((ann) => {
@@ -544,7 +549,7 @@ export function AnnotationLayer({ pageNumber, width, height, scale }: Annotation
                   key={ann.id}
                   id={ann.id} // ID on the line itself so intersection finds it
                   points={ann.points || []}
-                  stroke={applyHoverGlow ? "red" : (isSelected ? "#3b82f6" : ann.color)}
+                  stroke={applyHoverGlow ? "red" : ann.color}
                   strokeWidth={applyHoverGlow ? ann.strokeWidth! + 2 : ann.strokeWidth}
                   tension={0.5}
                   lineCap="round"
@@ -580,10 +585,10 @@ export function AnnotationLayer({ pageNumber, width, height, scale }: Annotation
           })}
 
           {/* Brush Erase Cursor Rendering */}
-          {activeTool === "eraser" && eraserSettings.mode === "drag" && brushPos && (
+          {activeTool === "eraser" && eraserSettings.mode === "drag" && (brushPos || useWorkspaceStore.getState().currentPage === pageNumber) && (
             <Circle
-              x={brushPos.x / scale}
-              y={brushPos.y / scale}
+              x={brushPos ? brushPos.x / scale : width / 2}
+              y={brushPos ? brushPos.y / scale : height / 2}
               radius={(eraserSettings.brushSize / 2) / scale}
               fill="rgba(100, 116, 139, 0.1)"
               stroke={isDrawing ? "#ef4444" : "#3b82f6"} // Red when erasing, blue when idle

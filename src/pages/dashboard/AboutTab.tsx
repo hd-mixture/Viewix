@@ -11,6 +11,17 @@ const upcomingFeatures = [
 
 const changelog = [
   {
+    version: "v2.4.0",
+    date: "July 2026",
+    changes: [
+      "Extensive Mobile UI improvements for drawing and text formatting",
+      "Added live Eraser brush size preview with animated iOS-style toggle",
+      "Introduced responsive sliders for Size and Stroke in Quick Actions",
+      "Fixed mobile scrolling and pinch-to-zoom interference during drawing",
+      "Improved text tool with Bold, Italic, and Underline mobile toggles"
+    ]
+  },
+  {
     version: "v2.3.0",
     date: "July 2026",
     changes: [
@@ -66,7 +77,7 @@ export function AboutTab() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">About Viewix</h1>
-          <p className="text-slate-500 dark:text-slate-400">Version 2.3.0</p>
+          <p className="text-slate-500 dark:text-slate-400">Version 2.4.0</p>
         </div>
       </div>
 

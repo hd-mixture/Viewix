@@ -84,7 +84,7 @@ export function CloudAnnotation({ annotation, isSelected }: CloudAnnotationProps
     }
   }, [isSelected])
 
-  const strokeColor = isSelected ? "#3b82f6" : annotation.color
+  const strokeColor = annotation.color
   const strokeWidth = annotation.strokeWidth || 2
   
   const handleSelect = () => {

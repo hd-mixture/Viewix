@@ -20,7 +20,7 @@ export function LineAnnotation({ annotation, isSelected }: LineAnnotationProps) 
     }
   }, [isSelected])
 
-  const strokeColor = isSelected ? "#3b82f6" : annotation.color
+  const strokeColor = annotation.color
   const strokeWidth = annotation.strokeWidth || 2
   const points = annotation.points || [0, 0, 0, 0]
 

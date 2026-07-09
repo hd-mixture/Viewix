@@ -11,6 +11,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ["drilling-degrading-backward.ngrok-free.dev"],
-  },
+    allowedHosts: true,
+  }
 })

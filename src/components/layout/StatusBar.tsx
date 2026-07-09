@@ -17,7 +17,7 @@ export function StatusBar() {
 
   return (
     <footer 
-      className="absolute bottom-6 right-[348px] flex items-center justify-between px-6 pointer-events-none z-40 transition-all duration-500"
+      className="hidden md:flex absolute bottom-6 right-[348px] items-center justify-between px-6 pointer-events-none z-40 transition-all duration-500"
       style={{ left: getLeftPosition() }}
     >
       {/* Left: Status */}

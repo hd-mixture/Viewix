@@ -139,6 +139,9 @@ interface WorkspaceState {
   setActiveTool: (tool: Tool) => void
   setActiveSidebarTab: (tab: "workspace" | "pages" | "bookmarks" | "comments" | "outline" | "history" | null) => void
   
+  showAdvancedProperties: boolean
+  setShowAdvancedProperties: (show: boolean) => void
+  
   setSelectedPages: (pages: number[]) => void
   setLastSelectedPage: (page: number | null) => void
   setIsOrganizeMode: (val: boolean) => void
@@ -245,6 +248,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   selectedPages: [],
   lastSelectedPage: null,
   isOrganizeMode: false,
+  
+  showAdvancedProperties: false,
+  setShowAdvancedProperties: (show) => set({ showAdvancedProperties: show }),
   
   activeTool: "pointer",
   annotations: [],
@@ -432,15 +438,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
        localStorage.setItem('viewix_recent', JSON.stringify(updated))
     }
   },
+  setNumPages: (num) => set({ numPages: num }),
   setCurrentPage: (page) => set({ currentPage: page }),
   setZoom: (zoom) => set({ zoom }),
   setRotation: (rotation) => set({ rotation }),
-  setActiveTool: (tool) => set({ activeTool: tool }),
+  setActiveTool: (tool) => {
+    set({ activeTool: tool, showAdvancedProperties: false })
+  },
   setActiveSidebarTab: (tab) => set({ activeSidebarTab: tab }),
   
   setSelectedPages: (pages) => set({ selectedPages: pages }),
   setLastSelectedPage: (page) => set({ lastSelectedPage: page }),
-  setIsOrganizeMode: (val) => set({ isOrganizeMode: val }),
+  setIsOrganizeMode: (val) => set({ isOrganizeMode: val, showAdvancedProperties: false }),
   
   addAnnotation: (annotation) => set((state) => {
     const next = [...state.annotations, annotation]

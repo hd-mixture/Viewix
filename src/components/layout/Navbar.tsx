@@ -1,6 +1,6 @@
 import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
-import { Search, Undo2, Redo2, Settings, Sun, Moon, Maximize, ZoomIn, ZoomOut, CheckCircle2, ChevronLeft } from "lucide-react"
+import { Search, Undo2, Redo2, Settings, Sun, Moon, Maximize, ZoomIn, ZoomOut, CheckCircle2, ChevronLeft, Menu, Download, CloudUpload } from "lucide-react"
 import { UniversalSearch } from "@/components/search/UniversalSearch"
 import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 import { exportPdfWithAnnotations } from "@/utils/export"
@@ -11,7 +11,15 @@ import { ComingSoonModal } from "@/components/ui/modals/ComingSoonModal"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
-  const { pdfFile, annotations, undo, redo, pastAnnotations, futureAnnotations, zoom, setZoom, openedFromDashboard, resetWorkspace, isSaving } = useWorkspaceStore()
+  const { pdfFile, annotations, undo, redo, pastAnnotations, futureAnnotations, zoom, setZoom, openedFromDashboard, resetWorkspace, isSaving, numPages } = useWorkspaceStore()
+  
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  }
   const { theme, setTheme } = useTheme()
   const [comingSoonType, setComingSoonType] = useState<"settings" | "profile" | null>(null)
   
@@ -48,8 +56,68 @@ export function Navbar() {
   }
 
   return (
-    <header className="absolute top-0 left-0 right-0 h-[72px] flex items-center justify-between px-6 z-50">
-      
+    <>
+      {/* Mobile Header */}
+      <header className="md:hidden absolute top-0 left-0 right-0 h-[64px] flex items-center px-2 z-50 bg-white dark:bg-[#020617] border-b border-slate-200/60 dark:border-white/10 overflow-hidden shadow-sm justify-between gap-1.5">
+        
+        {/* 1. Back Button & Logo */}
+        <div className="flex items-center shrink-0">
+          <button 
+            className="p-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors -ml-1"
+            onClick={resetWorkspace}
+          >
+            <ChevronLeft className="w-5 h-5 stroke-[2.5px]" />
+          </button>
+          <Logo className="scale-[0.75] origin-left -ml-1 -mr-[76px]" />
+        </div>
+
+        {/* 2. Divider */}
+        <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700/50 shrink-0" />
+
+        {/* 3. Document Info */}
+        <div className="flex flex-col flex-1 min-w-0 justify-center ml-0.5">
+          <span className="text-[11px] font-bold text-slate-900 dark:text-slate-100 truncate w-full">
+            {pdfFile?.name || "Document"}
+          </span>
+          <span className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5 truncate w-full">
+            {formatBytes(pdfFile?.size || 0)} • {numPages} Pgs
+          </span>
+        </div>
+
+        {/* 4. Saved Pill (Icon Only) */}
+        <div className="flex items-center justify-center p-1 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded shrink-0">
+          <CheckCircle2 className="w-3.5 h-3.5 stroke-2" />
+        </div>
+
+        {/* 5. Divider */}
+        <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700/50 shrink-0" />
+
+        {/* 6. Actions & Profile */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button className="p-1.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg" onClick={handleExportAsync}>
+            <Download className="w-4 h-4" />
+          </button>
+          <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center">
+            <CloudUpload className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+          </button>
+          <button 
+            className="p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400"
+            onClick={toggleTheme}
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          <button 
+            onClick={() => setComingSoonType("profile")}
+            className="w-7 h-7 rounded-full overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700"
+          >
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=4F46E5" alt="Profile" className="w-full h-full object-cover" />
+          </button>
+        </div>
+
+      </header>
+
+      {/* Desktop Header */}
+      <header className="hidden md:flex absolute top-0 left-0 right-0 h-[72px] items-center justify-between px-6 z-50">
       {/* Left: Logo & Doc Info */}
       <div className="flex items-center gap-4 flex-1">
         {openedFromDashboard && (
@@ -168,11 +236,13 @@ export function Navbar() {
         </button>
       </div>
 
+      </header>
+
       <ComingSoonModal 
         isOpen={comingSoonType !== null} 
         onClose={() => setComingSoonType(null)} 
         type={comingSoonType || "settings"} 
       />
-    </header>
+    </>
   )
 }

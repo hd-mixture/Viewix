@@ -29,10 +29,6 @@ export function PdfPage({ pageNumber, pdfDocument, scale }: PdfPageProps) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(true)
-            // If it takes up significant portion of viewport, it's the current page
-            if (entry.intersectionRatio > 0.5) {
-              setCurrentPage(pageNumber)
-            }
           } else {
             // Unload canvas to save memory when far out of view
             // In a real app we might keep a small buffer (prev/next)

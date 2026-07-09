@@ -16,7 +16,7 @@ export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
   const { isFullscreen } = useWorkspaceStore()
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#020617] text-slate-800 dark:text-slate-200 selection:bg-blue-500/30 transition-colors duration-500">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-slate-50 dark:bg-[#020617] text-slate-800 dark:text-slate-200 selection:bg-blue-500/30 transition-colors duration-500">
       {/* Premium Dark Gradient Background - Only visible in dark mode */}
       <div className="absolute inset-0 pointer-events-none z-0 hidden dark:block">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b,transparent_70%)] opacity-60"></div>
@@ -37,10 +37,14 @@ export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
 
       {!isFullscreen && <Navbar />}
       
-      <div className={cn("absolute inset-0 flex z-10 gap-4 pointer-events-none transition-all duration-500", isFullscreen ? "top-0 bottom-0 p-0" : "top-[88px] bottom-8 px-8")}>
-        {hasSidebar && !isFullscreen && <LeftSidebar />}
+      <div className={cn("absolute inset-0 flex z-10 md:gap-4 pointer-events-none transition-all duration-500", isFullscreen ? "top-0 bottom-0 p-0" : "top-[72px] md:top-[88px] bottom-0 md:bottom-8 px-0 md:px-8")}>
+        {hasSidebar && !isFullscreen && (
+          <div className="hidden md:flex h-full pointer-events-none">
+            <LeftSidebar />
+          </div>
+        )}
         
-        <main className={cn("relative flex-1 flex flex-col overflow-hidden z-0 pointer-events-auto", isFullscreen ? "rounded-none mb-0" : "rounded-2xl mb-[52px]")}>
+        <main className={cn("relative flex-1 flex flex-col overflow-hidden z-0 pointer-events-auto", isFullscreen ? "rounded-none mb-0" : "rounded-none md:rounded-2xl mb-0 md:mb-[52px]")}>
           {isFullscreen && (
             <div className="absolute top-8 left-8 z-[9999] pointer-events-none opacity-30 drop-shadow-xl mix-blend-multiply grayscale">
               <Logo className="scale-125 origin-top-left !text-black" />
@@ -49,7 +53,11 @@ export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
           {children}
         </main>
         
-        {hasSidebar && !isFullscreen && <RightSidebar />}
+        {hasSidebar && !isFullscreen && (
+          <div className="hidden md:flex h-full pointer-events-none">
+            <RightSidebar />
+          </div>
+        )}
       </div>
       
       {!isFullscreen && <StatusBar />}

@@ -2,7 +2,8 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Search, LayoutTemplate, Star, Copy, Eye, Plus, Crown, FileText, Trash2,
-  LayoutGrid, Clock, Bookmark, Briefcase, User, Zap, Layout, Award, Mail, FileBarChart
+  LayoutGrid, Clock, Bookmark, Briefcase, User, Zap, Layout, Award, Mail, FileBarChart,
+  Grid, List
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -45,6 +46,7 @@ export function TemplatesTab() {
   const [activeCategory, setActiveCategory] = useState("All")
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showLeftShadow, setShowLeftShadow] = useState(false)
@@ -194,7 +196,7 @@ export function TemplatesTab() {
     }
   }
 
-  const renderTemplateCard = (template: Template) => {
+  const renderTemplateCard = (template: Template, isMobileListMode: boolean = false, isHorizontalScroll: boolean = false) => {
     const isHovered = hoveredId === template.id
     const isFavorite = favoriteTemplates.includes(template.id)
 
@@ -206,12 +208,24 @@ export function TemplatesTab() {
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         key={template.id}
-        className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        className={cn(
+          "group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[16px] md:rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-200 cursor-pointer overflow-hidden flex flex-col",
+          isMobileListMode 
+            ? "flex-row items-stretch p-0 md:flex-col md:items-stretch min-h-[64px]" 
+            : isHorizontalScroll
+              ? "w-[140px] shrink-0 snap-start md:w-auto md:shrink-1 md:snap-none"
+              : "w-full md:w-auto"
+        )}
         onMouseEnter={() => setHoveredId(template.id)}
         onMouseLeave={() => setHoveredId(null)}
         onClick={() => handleUseTemplate(template)}
       >
-        <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800/50 overflow-hidden">
+        <div className={cn(
+          "relative bg-slate-100 dark:bg-slate-800/50 overflow-hidden shrink-0 md:border-b md:border-slate-100 md:dark:border-slate-800",
+          isMobileListMode 
+            ? "w-[84px] sm:w-[100px] md:w-full md:aspect-[4/3]" 
+            : "w-full aspect-[4/3]"
+        )}>
           <motion.div
             animate={{ scale: isHovered ? 1.05 : 1 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
@@ -226,21 +240,22 @@ export function TemplatesTab() {
           </motion.div>
           
           {template.isPro && (
-            <div className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm z-10">
-              <Crown className="w-3 h-3" /> PRO
+            <div className="absolute top-2 left-2 md:top-3 md:left-3 bg-amber-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm z-10">
+              <Crown className="w-2.5 h-2.5 md:w-3 md:h-3" /> <span className="hidden md:inline">PRO</span>
             </div>
           )}
 
           <button 
             onClick={(e) => handleFavorite(e, template)}
             className={cn(
-              "absolute top-3 right-3 h-8 w-8 rounded-full flex items-center justify-center transition-all z-10",
+              "absolute top-2 right-2 md:top-3 md:right-3 h-6 w-6 md:h-8 md:w-8 rounded-full items-center justify-center transition-all z-10",
+              isMobileListMode ? "hidden md:flex" : "flex",
               isFavorite 
                 ? "bg-amber-100 dark:bg-amber-500/20 text-amber-500 opacity-100" 
-                : "bg-white/50 dark:bg-slate-800/50 text-slate-500 opacity-0 group-hover:opacity-100 hover:bg-white dark:hover:bg-slate-800 hover:text-amber-500"
+                : "bg-white/50 dark:bg-slate-800/50 text-slate-500 md:opacity-0 md:group-hover:opacity-100 hover:bg-white dark:hover:bg-slate-800 hover:text-amber-500"
             )}
           >
-            <Star className={cn("w-4 h-4", isFavorite && "fill-current")} />
+            <Star className={cn("w-3.5 h-3.5 md:w-4 md:h-4", isFavorite && "fill-current")} />
           </button>
 
           <AnimatePresence>
@@ -294,54 +309,117 @@ export function TemplatesTab() {
           </AnimatePresence>
         </div>
         
-        <div className="p-4 relative h-[90px] flex flex-col justify-start">
-          <div className="flex items-center justify-between mb-1.5">
-            <h3 className="font-semibold text-slate-900 dark:text-white truncate pr-4 text-sm">{template.title}</h3>
-          </div>
-          
-          <div className="relative flex-1">
-            <AnimatePresence>
-              {!isHovered && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute inset-0 flex flex-col gap-1"
-                >
-                  {!template.id.startsWith('copy-') && (
-                    <p className="text-[13px] leading-snug text-slate-500 dark:text-slate-400 line-clamp-2">
-                      {template.description}
-                    </p>
-                  )}
-                  {template.id.startsWith('copy-') && (
-                    <span className="text-[12px] font-medium text-slate-400 dark:text-slate-500 mt-0">
+        <div className={cn(
+          "relative flex flex-1 min-w-0",
+          isMobileListMode ? "flex-row items-center p-2 sm:p-2.5 gap-1.5 md:flex-col md:items-stretch md:justify-start md:h-[90px] md:gap-0" : "flex-col justify-center md:justify-start p-2.5 md:p-4 h-auto"
+        )}>
+          <div className="flex flex-col flex-1 min-w-0 md:static">
+            <h3 className={cn(
+              "text-slate-900 dark:text-white truncate mb-0.5",
+              isMobileListMode ? "font-semibold text-[11.5px] sm:text-[12.5px] md:font-semibold md:text-sm" : "font-bold md:font-semibold text-[10.5px] md:text-sm text-center md:text-left"
+            )}>{template.title}</h3>
+            
+            <div className={cn("relative flex-1", isMobileListMode ? "w-full" : "")}>
+              <div className="flex flex-col text-left relative transition-opacity duration-200 md:group-hover:opacity-0">
+                {!template.id.startsWith('copy-') && (
+                  <p className={cn(
+                    "text-slate-500 dark:text-slate-400 line-clamp-2 md:mt-1",
+                    isMobileListMode ? "text-[10px] sm:text-[11px] leading-[1.3] pr-1" : "text-[9px] md:text-[13px] leading-tight md:leading-snug"
+                  )}>
+                    {template.description}
+                  </p>
+                )}
+                {template.id.startsWith('copy-') && (
+                  <div className={cn("flex flex-col", isMobileListMode ? "gap-0 mt-0" : "gap-0.5 mt-0.5 md:mt-1")}>
+                    <span className={cn("font-medium text-slate-400 dark:text-slate-500", isMobileListMode ? "text-[11px]" : "text-[9px] md:text-[12px]")}>
                       Created {formatTimeAgo(parseInt(template.id.split('-')[1]))}
                     </span>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <AnimatePresence>
-              {isHovered && (
-                <motion.div 
-                  initial={{ y: 15, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 15, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: "easeOut" }}
-                  className="absolute inset-0 pt-0.5"
-                >
+                    <div className={cn("text-slate-400 flex items-center gap-1", isMobileListMode ? "text-[11px]" : "text-[9px] md:text-[12px]")}>
+                      <FileText className="w-3 h-3 md:hidden" />
+                      <span className="md:hidden">{template.size ? formatSize(template.size) : "583 Bytes"}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Desktop Hover Overlay */}
+              <div className="absolute inset-0 hidden md:flex flex-col justify-start pt-1 pointer-events-none group-hover:pointer-events-auto">
+                <div className="opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-200 ease-out w-full">
                   <Button 
                     onClick={(e) => { e.stopPropagation(); handleUseTemplate(template); }}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 text-sm shadow-md shadow-blue-500/20"
                   >
                     Use Template
                   </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
           </div>
+          
+          {isMobileListMode && (
+            <div className="shrink-0 md:hidden flex flex-col gap-1 justify-center pl-1">
+              <Button 
+                onClick={(e) => { e.stopPropagation(); handleUseTemplate(template); }}
+                className="bg-blue-50/80 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-600/30 rounded-[8px] h-[26px] px-2.5 text-[10px] font-semibold shadow-none w-full"
+              >
+                Use
+              </Button>
+              <div className="flex gap-1 w-full">
+                <Button 
+                  onClick={(e) => { e.stopPropagation(); handleDuplicate(e, template); }}
+                  className={cn(
+                    "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-[8px] h-[26px] text-[10px] font-semibold shadow-none flex items-center justify-center gap-1",
+                    template.id.startsWith('copy-') ? "flex-1 px-1" : "w-full px-2.5"
+                  )}
+                >
+                  <Copy className="w-2.5 h-2.5" /> {!template.id.startsWith('copy-') && "Copy"}
+                </Button>
+                {template.id.startsWith('copy-') && (
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (confirm("Are you sure you want to delete this copied template?")) {
+                        useWorkspaceStore.getState().deleteMyTemplate(template.id)
+                      }
+                    }}
+                    className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-[8px] h-[26px] w-[26px] p-0 flex items-center justify-center shrink-0 shadow-none"
+                  >
+                    <Trash2 className="w-2.5 h-2.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {!isMobileListMode && (
+            <div className="flex md:hidden items-center gap-1.5 mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 relative z-10">
+              <Button 
+                onClick={(e) => { e.stopPropagation(); handleUseTemplate(template); }}
+                className="flex-1 bg-blue-50/80 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-600/30 rounded-[8px] h-[28px] px-2 text-[10px] font-semibold shadow-none"
+              >
+                Use
+              </Button>
+              <Button 
+                onClick={(e) => { e.stopPropagation(); handleDuplicate(e, template); }}
+                className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-[8px] w-[28px] h-[28px] p-0 flex items-center justify-center shrink-0 shadow-none"
+              >
+                <Copy className="w-3 h-3" />
+              </Button>
+              {template.id.startsWith('copy-') && (
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (confirm("Are you sure you want to delete this copied template?")) {
+                      useWorkspaceStore.getState().deleteMyTemplate(template.id)
+                    }
+                  }}
+                  className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-[8px] w-[28px] h-[28px] p-0 flex items-center justify-center shrink-0 shadow-none"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </motion.div>
     )
@@ -354,13 +432,13 @@ export function TemplatesTab() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="flex-1 p-8 lg:p-12 flex flex-col w-full h-full relative z-10"
+        className="flex-1 min-h-0 px-5 py-4 md:p-8 lg:p-12 flex flex-col w-full h-full relative z-10"
       >
         <div className="flex flex-col gap-6 mb-8 shrink-0">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Template Gallery</h1>
-              <p className="text-slate-500 dark:text-slate-400">Start your next document instantly with a professional template.</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2 tracking-tight">Template Gallery</h1>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Start your next document instantly with a professional template.</p>
             </div>
             
             <div className="relative w-full lg:w-72 shrink-0">
@@ -375,7 +453,7 @@ export function TemplatesTab() {
             </div>
           </div>
 
-          <div className="w-fit max-w-full mx-auto relative">
+          <div className="w-full md:w-fit max-w-full mx-auto relative md:mx-auto">
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
@@ -384,11 +462,11 @@ export function TemplatesTab() {
               onMouseUp={handleMouseUp}
               onMouseMove={handleMouseMove}
               onWheel={handleWheel}
-              className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-2 overflow-x-auto select-none cursor-grab active:cursor-grabbing snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              className="flex items-center gap-2 md:gap-1 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-slate-900 md:rounded-2xl md:shadow-sm md:border md:border-slate-200 md:dark:border-slate-800 py-2 -mx-5 px-5 scroll-px-5 md:mx-0 md:p-2 md:scroll-px-0 overflow-x-auto select-none cursor-grab active:cursor-grabbing snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
               {CATEGORIES_CONFIG.map((cat, i) => {
                 if (cat.type === 'divider') {
-                  return <div key={`div-${i}`} className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1 shrink-0" />
+                  return <div key={`div-${i}`} className="hidden md:block w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1 shrink-0" />
                 }
                 const isActive = activeCategory === cat.id
                 const Icon = cat.icon!
@@ -397,14 +475,14 @@ export function TemplatesTab() {
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id!)}
                     className={cn(
-                      "relative flex flex-col items-center justify-center gap-1.5 min-w-[96px] h-[72px] px-2 rounded-xl transition-all duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0 snap-start group outline-none",
+                      "relative flex flex-col items-center justify-center gap-1 min-w-[54px] h-[54px] md:min-w-[96px] md:h-[72px] px-1 md:px-2 rounded-[14px] md:rounded-xl transition-all duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] shrink-0 snap-start group outline-none",
                       isActive 
-                        ? "text-blue-600 dark:text-blue-500 font-semibold bg-blue-600/5 dark:bg-blue-500/10" 
-                        : "text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-600/5 dark:hover:bg-blue-500/10"
+                        ? "text-blue-600 dark:text-blue-500 font-semibold bg-blue-50/80 md:bg-blue-600/5 dark:bg-blue-500/10 shadow-sm md:shadow-none" 
+                        : "text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-600/5 dark:hover:bg-blue-500/10 bg-white dark:bg-slate-800/60 md:bg-transparent md:dark:bg-transparent shadow-sm md:shadow-none"
                     )}
                   >
-                    <Icon className={cn("w-[22px] h-[22px] transition-transform duration-220 ease-[cubic-bezier(0.22,1,0.36,1)]", !isActive && "group-hover:-translate-y-[2px]")} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className="text-[13px]">{cat.label}</span>
+                    <Icon className={cn("w-[16px] h-[16px] md:w-[22px] md:h-[22px] transition-transform duration-220 ease-[cubic-bezier(0.22,1,0.36,1)]", !isActive && "group-hover:-translate-y-[2px]")} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className="text-[9px] md:text-[13px]">{cat.label}</span>
                     {isActive && (
                       <motion.div
                         layoutId="activeCategoryIndicator"
@@ -421,7 +499,7 @@ export function TemplatesTab() {
               {showLeftShadow && (
                 <motion.div 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-                  className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none rounded-l-2xl z-10"
+                  className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-slate-900 to-transparent pointer-events-none rounded-l-2xl z-10 hidden md:block"
                 />
               )}
             </AnimatePresence>
@@ -429,14 +507,14 @@ export function TemplatesTab() {
               {showRightShadow && (
                 <motion.div 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-                  className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none rounded-r-2xl z-10"
+                  className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white dark:from-slate-900 to-transparent pointer-events-none rounded-r-2xl z-10 hidden md:block"
                 />
               )}
             </AnimatePresence>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-20">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-24 md:pb-8 min-h-0">
           {filteredTemplates.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -453,29 +531,57 @@ export function TemplatesTab() {
               </p>
             </motion.div>
           ) : (
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-8 md:gap-10">
               {activeCategory === "All" && !searchQuery && starredTemplates.length > 0 && (
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-500 fill-amber-500" /> Starred Templates
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-[15px] md:text-lg font-bold text-slate-900 dark:text-slate-200 flex items-center gap-2">
+                      <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-500 fill-amber-500" /> Starred Templates
+                    </h2>
+                  </div>
+                  <div className="flex overflow-x-auto md:overflow-visible snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 pb-4 md:pb-2 -mx-5 px-5 scroll-px-5 md:mx-0 md:px-0 md:scroll-px-0 pt-2 -mt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <AnimatePresence mode="popLayout">
-                      {starredTemplates.map(renderTemplateCard)}
+                      {starredTemplates.map((t) => renderTemplateCard(t, false, true))}
                     </AnimatePresence>
                   </div>
                 </div>
               )}
               
-              <div className={activeCategory === "All" && !searchQuery && starredTemplates.length > 0 ? "pt-2 border-t border-slate-200 dark:border-slate-800/60" : ""}>
-                {activeCategory === "All" && !searchQuery && starredTemplates.length > 0 && (
-                  <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">All Templates</h2>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className={activeCategory === "All" && !searchQuery && starredTemplates.length > 0 ? "pt-2 md:border-t md:border-slate-200 md:dark:border-slate-800/60" : ""}>
+                <div className="flex justify-between items-center mb-4">
+                  {(activeCategory === "All" && !searchQuery && starredTemplates.length > 0) ? (
+                    <h2 className="text-[15px] md:text-lg font-bold text-slate-900 dark:text-slate-200">All Templates</h2>
+                  ) : (
+                    <h2 className="text-[15px] md:text-lg font-bold text-slate-900 dark:text-slate-200 hidden md:block">Templates</h2> // Empty or hidden on mobile if no starred
+                  )}
+                  
+                  <div className="flex items-center gap-3 ml-auto">
+                    <div className="flex md:hidden items-center bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-[14px] p-0.5 shadow-sm shrink-0">
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={cn("p-1.5 rounded-xl transition-colors", viewMode === 'grid' ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white" : "text-slate-400 hover:text-slate-600")}
+                      >
+                        <Grid className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={cn("p-1.5 rounded-xl transition-colors", viewMode === 'list' ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white" : "text-slate-400 hover:text-slate-600")}
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className={cn(
+                  "gap-3 md:gap-6",
+                  viewMode === 'grid' 
+                    ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                    : "flex flex-col md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                )}>
                   <AnimatePresence mode="popLayout">
                     {activeCategory === "All" && !searchQuery 
-                      ? unstarredTemplates.map(renderTemplateCard)
-                      : filteredTemplates.map(renderTemplateCard)
+                      ? unstarredTemplates.map((t) => renderTemplateCard(t, viewMode === 'list', false))
+                      : filteredTemplates.map((t) => renderTemplateCard(t, viewMode === 'list', false))
                     }
                   </AnimatePresence>
                 </div>

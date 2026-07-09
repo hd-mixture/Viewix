@@ -20,7 +20,7 @@ export function ShapeAnnotation({ annotation, isSelected }: ShapeAnnotationProps
     }
   }, [isSelected])
 
-  const strokeColor = isSelected ? "#3b82f6" : annotation.color
+  const strokeColor = annotation.color
 
   const handleSelect = () => {
     if (activeTool === "pointer") {

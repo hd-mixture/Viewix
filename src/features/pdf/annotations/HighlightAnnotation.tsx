@@ -35,7 +35,7 @@ export function HighlightAnnotation({ annotation, isSelected }: HighlightAnnotat
     onTap: () => deleteAnnotation(annotation.id),
   } : {}
 
-  const color = isSelected && activeTool === "pointer" ? "#3b82f6" : annotation.color || "rgba(255, 226, 64, 0.5)"
+  const color = annotation.color || "rgba(255, 226, 64, 0.5)"
   
   // Highlighting typically consists of multiple rects if text spans multiple lines
   // If we just have old points (freedraw style), we render a line fallback? 
