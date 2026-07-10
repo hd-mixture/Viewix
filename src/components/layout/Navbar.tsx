@@ -11,7 +11,7 @@ import { ComingSoonModal } from "@/components/ui/modals/ComingSoonModal"
 import { cn } from "@/lib/utils"
 
 export function Navbar() {
-  const { pdfFile, annotations, undo, redo, pastAnnotations, futureAnnotations, zoom, setZoom, openedFromDashboard, resetWorkspace, isSaving, numPages } = useWorkspaceStore()
+  const { pdfFile, annotations, undo, redo, pastAnnotations, futureAnnotations, zoom, setZoom, openedFromDashboard, resetWorkspace, isSaving, numPages, isOffline, showToast } = useWorkspaceStore()
   
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
@@ -97,7 +97,22 @@ export function Navbar() {
           <button className="p-1.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg" onClick={handleExportAsync}>
             <Download className="w-4 h-4" />
           </button>
-          <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center">
+          <button 
+            className={cn(
+              "p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center",
+              isOffline 
+                ? "opacity-50 cursor-not-allowed" 
+                : "hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+            )}
+            onClick={() => {
+              if (isOffline) {
+                showToast("Offline", "This feature requires an internet connection.", 3000)
+              } else {
+                showToast("Cloud Sync", "Your document is already synced to the cloud.", 3000)
+              }
+            }}
+            title={isOffline ? "Cloud sync requires internet" : "Cloud Sync"}
+          >
             <CloudUpload className="w-4 h-4 text-slate-700 dark:text-slate-300" />
           </button>
           <button 

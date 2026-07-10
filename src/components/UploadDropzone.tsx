@@ -11,7 +11,7 @@ export function UploadDropzone() {
   const [isUploading, setIsUploading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   
-  const { setPdfFile, setPdfDocument } = useWorkspaceStore()
+  const { setPdfFile, setPdfDocument, isOffline } = useWorkspaceStore()
 
   const onDrop = useCallback(async (acceptedFiles: File[], fileRejections: any[]) => {
     setErrorMsg(null)
@@ -49,6 +49,7 @@ export function UploadDropzone() {
       "application/pdf": [".pdf"],
     },
     maxFiles: 1,
+    disabled: isOffline,
   })
 
   return (
@@ -69,54 +70,68 @@ export function UploadDropzone() {
           !isDragActive && isHovered ? "border-border/80 shadow-2xl shadow-primary/5" : "shadow-xl"
         )}
       >
-        <input {...getInputProps()} />
-
-        {/* Animated Background Blob */}
-        <div 
-          className={cn(
-            "pointer-events-none absolute left-1/2 top-1/2 -z-10 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[80px] transition-all duration-700",
-            (isDragActive || isHovered) ? "scale-150 opacity-100" : "scale-100 opacity-0"
-          )}
-        />
-
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-background shadow-inner ring-1 ring-border">
-          {isDragReject ? (
-            <AlertCircle className="h-10 w-10 text-destructive" />
-          ) : isUploading ? (
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
-              <UploadCloud className="h-10 w-10 text-primary" />
+        {isOffline ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+              <img src="/offline_illustration.png" alt="Offline" className="w-48 h-48 object-contain mb-4 drop-shadow-xl" />
             </motion.div>
-          ) : (
-            <File className={cn(
-              "h-10 w-10 transition-colors duration-300",
-              isDragActive || isHovered ? "text-primary" : "text-muted-foreground"
-            )} />
-          )}
-        </div>
+            <h3 className="mb-2 text-2xl font-heading font-bold text-foreground">You're Offline</h3>
+            <p className="max-w-sm mx-auto text-muted-foreground text-sm">
+              Please reconnect to the internet to upload new PDF documents.
+            </p>
+          </div>
+        ) : (
+          <>
+            <input {...getInputProps()} />
 
-        <h3 className="mb-2 text-2xl font-heading font-semibold text-foreground">
-          {errorMsg 
-            ? "Upload Failed"
-            : isUploading 
-            ? "Processing PDF..." 
-            : isDragActive 
-              ? "Drop PDF here" 
-              : "Upload your PDF"}
-        </h3>
-        
-        <p className={cn("mb-8 max-w-sm mx-auto", errorMsg ? "text-destructive" : "text-muted-foreground")}>
-          {errorMsg 
-            ? errorMsg 
-            : isUploading
-            ? "Please wait while we process your document."
-            : isDragReject 
-              ? "Please upload a valid PDF file." 
-              : "Drag and drop your document here, or click to browse files from your computer."}
-        </p>
+            {/* Animated Background Blob */}
+            <div 
+              className={cn(
+                "pointer-events-none absolute left-1/2 top-1/2 -z-10 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[80px] transition-all duration-700",
+                (isDragActive || isHovered) ? "scale-150 opacity-100" : "scale-100 opacity-0"
+              )}
+            />
 
-        <div className="inline-flex items-center gap-2 rounded-full bg-background/50 px-4 py-2 text-xs font-medium text-muted-foreground ring-1 ring-border">
-          Maximum file size: 50MB
-        </div>
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-background shadow-inner ring-1 ring-border">
+              {isDragReject ? (
+                <AlertCircle className="h-10 w-10 text-destructive" />
+              ) : isUploading ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
+                  <UploadCloud className="h-10 w-10 text-primary" />
+                </motion.div>
+              ) : (
+                <File className={cn(
+                  "h-10 w-10 transition-colors duration-300",
+                  isDragActive || isHovered ? "text-primary" : "text-muted-foreground"
+                )} />
+              )}
+            </div>
+
+            <h3 className="mb-2 text-2xl font-heading font-semibold text-foreground">
+              {errorMsg 
+                ? "Upload Failed"
+                : isUploading 
+                ? "Processing PDF..." 
+                : isDragActive 
+                  ? "Drop PDF here" 
+                  : "Upload your PDF"}
+            </h3>
+            
+            <p className={cn("mb-8 max-w-sm mx-auto", errorMsg ? "text-destructive" : "text-muted-foreground")}>
+              {errorMsg 
+                ? errorMsg 
+                : isUploading
+                ? "Please wait while we process your document."
+                : isDragReject 
+                  ? "Please upload a valid PDF file." 
+                  : "Drag and drop your document here, or click to browse files from your computer."}
+            </p>
+
+            <div className="inline-flex items-center gap-2 rounded-full bg-background/50 px-4 py-2 text-xs font-medium text-muted-foreground ring-1 ring-border">
+              Maximum file size: 50MB
+            </div>
+          </>
+        )}
       </div>
     </motion.div>
   )

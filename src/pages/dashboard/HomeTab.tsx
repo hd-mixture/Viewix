@@ -5,6 +5,7 @@ import { ShieldCheck, UploadCloud, PenTool, Zap, Users, Crown, ChevronRight, Fil
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getPdfFromDB } from "@/lib/db"
+import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 import * as pdfjsLib from "pdfjs-dist"
 
 export function HomeTab({ 
@@ -17,6 +18,7 @@ export function HomeTab({
   onOpenFile
 }: any) {
   const { theme } = useTheme()
+  const { isOffline } = useWorkspaceStore()
   const isLight = theme !== "dark"
   const illustrationSrc = isLight ? "/Futuristic_interface_light.png" : "/Futuristic_interface.png"
 
@@ -184,37 +186,51 @@ export function HomeTab({
               transition={{ delay: 0.4 }}
               {...getRootProps()}
               className={cn(
-                "w-full md:max-w-[400px] rounded-3xl border-2 border-dashed bg-white dark:bg-slate-900/30 p-6 lg:p-8 text-center transition-all duration-300 cursor-pointer group",
+                "w-full md:max-w-[400px] rounded-3xl border-2 border-dashed bg-white dark:bg-slate-900/30 p-6 lg:p-8 text-center transition-all duration-300 cursor-pointer group relative overflow-hidden",
                 isDragActive && !isDragReject ? "border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-[0_0_20px_rgba(37,99,235,0.15)]" : "border-slate-300 dark:border-slate-700",
                 isDragReject ? "border-red-500 bg-red-50/50 dark:bg-red-500/10" : "",
-                !isDragActive && "hover:border-blue-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40 shadow-sm dark:shadow-none"
+                !isDragActive && !isOffline && "hover:border-blue-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40 shadow-sm dark:shadow-none"
               )}
             >
-              <input {...getInputProps()} />
-              <UploadCloud className="h-8 w-8 lg:h-10 lg:w-10 text-blue-600 dark:text-blue-500 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" />
-              <p className="text-sm lg:text-base font-medium text-slate-700 dark:text-slate-200 mb-1 transition-colors duration-500">
-                {errorMsg ? (
-                  <span className="text-red-500 dark:text-red-400">{errorMsg}</span>
-                ) : isUploading ? (
-                  "Processing PDF..."
-                ) : isDragActive ? (
-                  "Drop PDF here"
-                ) : (
-                  "Drag & drop your PDF here"
+              <div className={cn("transition-opacity duration-300", isOffline ? "opacity-0 pointer-events-none" : "opacity-100")}>
+                <input {...getInputProps()} />
+                <UploadCloud className="h-8 w-8 lg:h-10 lg:w-10 text-blue-600 dark:text-blue-500 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" />
+                <p className="text-sm lg:text-base font-medium text-slate-700 dark:text-slate-200 mb-1 transition-colors duration-500">
+                  {errorMsg ? (
+                    <span className="text-red-500 dark:text-red-400">{errorMsg}</span>
+                  ) : isUploading ? (
+                    "Processing PDF..."
+                  ) : isDragActive ? (
+                    "Drop PDF here"
+                  ) : (
+                    "Drag & drop your PDF here"
+                  )}
+                </p>
+                {!errorMsg && !isUploading && (
+                  <p className="text-slate-400 dark:text-slate-500 text-xs mb-3 lg:mb-4 transition-colors duration-500">or</p>
                 )}
-              </p>
-              {!errorMsg && !isUploading && (
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-3 lg:mb-4 transition-colors duration-500">or</p>
+
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl h-10 lg:h-11 shadow-[0_4px_14px_rgba(37,99,235,0.25)] dark:shadow-[0_0_15px_rgba(37,99,235,0.2)] border-0 transition-shadow pointer-events-none">
+                  <UploadCloud className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+                  Upload PDF
+                </Button>
+
+                <p className="text-[10px] lg:text-xs text-slate-400 dark:text-slate-500 mt-4 flex items-center justify-center gap-1.5 transition-colors duration-500">
+                  Supports: PDF <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" /> Max file size: 200MB
+                </p>
+              </div>
+
+              {isOffline && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900/30 backdrop-blur-sm z-10 rounded-3xl">
+                  <motion.div className="h-24 w-full relative flex items-center justify-center mb-1 z-0" animate={{ y: [0, -5, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                    <img src="/offline_illustration.png" alt="Offline" className="absolute bottom-[-95px] w-72 h-72 object-contain drop-shadow-lg max-w-none" />
+                  </motion.div>
+                  <h3 className="mb-0.5 text-xl font-heading font-bold text-slate-800 dark:text-white relative z-10 pt-2">You're Offline</h3>
+                  <p className="max-w-[250px] mx-auto text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed relative z-10">
+                    Please reconnect to upload documents.
+                  </p>
+                </div>
               )}
-
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl h-10 lg:h-11 shadow-[0_4px_14px_rgba(37,99,235,0.25)] dark:shadow-[0_0_15px_rgba(37,99,235,0.2)] border-0 transition-shadow">
-                <UploadCloud className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-                Upload PDF
-              </Button>
-
-              <p className="text-[10px] lg:text-xs text-slate-400 dark:text-slate-500 mt-4 flex items-center justify-center gap-1.5 transition-colors duration-500">
-                Supports: PDF <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" /> Max file size: 200MB
-              </p>
             </motion.div>
 
             <motion.div

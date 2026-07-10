@@ -198,6 +198,11 @@ interface WorkspaceState {
   setOpenedFromDashboard: (val: boolean) => void
   isFullscreen: boolean
   toggleFullscreen: () => void
+
+  isOffline: boolean
+  setIsOffline: (val: boolean) => void
+  isOfflineOverlayVisible: boolean
+  setIsOfflineOverlayVisible: (val: boolean) => void
   isSearchFocused: boolean
   setIsSearchFocused: (val: boolean) => void
   searchMode: "tools" | "document"
@@ -264,6 +269,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   activeTemplateId: null,
   setActiveTemplateId: (id) => set({ activeTemplateId: id }),
   isFullscreen: false,
+  
+  isOffline: typeof navigator !== 'undefined' ? !navigator.onLine : false,
+  setIsOffline: (val) => set({ isOffline: val }),
+  isOfflineOverlayVisible: false,
+  setIsOfflineOverlayVisible: (val) => set({ isOfflineOverlayVisible: val }),
+  
   isSearchFocused: false,
   searchMode: "tools",
   searchQuery: "",

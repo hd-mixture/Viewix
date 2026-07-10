@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 import { SignatureModal } from "@/components/ui/modals/SignatureModal"
 import { ToastNotification } from "@/components/ui/ToastNotification"
+import { OfflineOverlay } from "@/components/ui/OfflineOverlay"
 import { getPdfFromDB, initDB } from "@/lib/db"
 import * as pdfjsLib from "pdfjs-dist"
 
@@ -20,6 +21,25 @@ function App() {
       useWorkspaceStore.setState({ isFullscreen: !!document.fullscreenElement })
     }
     document.addEventListener("fullscreenchange", handleFullscreenChange)
+
+    const handleOffline = () => {
+      const state = useWorkspaceStore.getState()
+      state.setIsOffline(true)
+      if (state.pdfDocument) {
+        state.setIsOfflineOverlayVisible(true)
+      }
+    }
+
+    const handleOnline = () => {
+      const state = useWorkspaceStore.getState()
+      state.setIsOffline(false)
+      state.setIsOfflineOverlayVisible(false)
+      state.showToast("Sync Complete", "Your changes have been safely synchronized to the cloud.", 3000)
+    }
+
+    window.addEventListener("offline", handleOffline)
+    window.addEventListener("online", handleOnline)
+
 
     const restoreSession = async () => {
       try {
@@ -63,6 +83,8 @@ function App() {
 
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange)
+      window.removeEventListener("offline", handleOffline)
+      window.removeEventListener("online", handleOnline)
     }
   }, []) // Empty dependency array ensures it only runs on mount
 
@@ -73,6 +95,7 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#0F172A] font-sans text-foreground antialiased selection:bg-primary/30 relative">
+        <OfflineOverlay />
         <SignatureModal 
           isOpen={isSignatureModalOpen} 
           onClose={() => setSignatureModalOpen(false)} 
