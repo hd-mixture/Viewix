@@ -17,6 +17,7 @@ import { SignatureModal } from "@/components/ui/modals/SignatureModal"
 import { ToastNotification } from "@/components/ui/ToastNotification"
 import { ComingSoonModal } from "@/components/ui/modals/ComingSoonModal"
 import { ProPreviewModal } from "@/components/ui/modals/ProPreviewModal"
+import { ViewixWisdom } from "@/components/ui/ViewixWisdom"
 
 import { HomeTab } from "./dashboard/HomeTab"
 import { RecentFilesTab } from "./dashboard/RecentFilesTab"
@@ -192,20 +193,8 @@ export function Dashboard() {
                 </div>
               </div>
 
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800/50">
-                <button 
-                  onClick={() => setIsProModalOpen(true)}
-                  className="w-full relative overflow-hidden rounded-xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 p-4 shadow-md text-left"
-                >
-                  <div className="absolute top-0 right-0 p-2 opacity-5 dark:opacity-10 text-amber-500">
-                    <Crown className="w-16 h-16" />
-                  </div>
-                  <div className="relative z-10 flex items-center gap-2 text-amber-500 mb-1">
-                    <Crown className="h-4 w-4 fill-amber-500/20" />
-                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Viewix Pro</h3>
-                  </div>
-                  <p className="relative z-10 text-xs text-slate-500 dark:text-slate-400">Version 2.3.0</p>
-                </button>
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800/50 mt-auto">
+                <ViewixWisdom />
               </div>
             </motion.div>
           </>
@@ -243,24 +232,10 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Pro Card */}
-        <button 
-          onClick={() => setIsProModalOpen(true)}
-          className="relative mt-auto overflow-hidden rounded-xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 p-5 shadow-lg dark:shadow-xl transition-all duration-300 hover:shadow-amber-500/10 hover:border-amber-500/30 dark:hover:shadow-amber-500/20 group text-left cursor-pointer"
-        >
-          <div className="absolute top-0 right-0 p-3 opacity-5 dark:opacity-10 text-amber-500 transition-transform duration-500 group-hover:scale-110">
-            <Crown className="w-20 h-20" />
-          </div>
-          <div className="relative z-10 space-y-2">
-            <div className="flex items-center gap-2 text-amber-500">
-              <Crown className="h-4 w-4 fill-amber-500/20" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Viewix Pro</h3>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
-              Preview the premium roadmap for professional users.
-            </p>
-          </div>
-        </button>
+        {/* Wisdom Widget */}
+        <div className="mt-auto pt-4 pb-6">
+          <ViewixWisdom />
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -314,6 +289,10 @@ export function Dashboard() {
               isUploading={isUploading}
               errorMsg={errorMsg}
               illustrationSrc={illustrationSrc}
+              onOpenFile={async (file: File) => {
+                setOpenedFromDashboard(true)
+                await onDrop([file])
+              }}
             />
           )}
           {activeDashboardTab === "recent" && (

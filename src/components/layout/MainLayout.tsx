@@ -54,7 +54,7 @@ export function MainLayout({ children, hasSidebar = true }: MainLayoutProps) {
         </main>
         
         {hasSidebar && !isFullscreen && (
-          <div className="hidden md:flex h-full pointer-events-none">
+          <div className="hidden md:flex h-full pointer-events-none relative z-50">
             <RightSidebar />
           </div>
         )}

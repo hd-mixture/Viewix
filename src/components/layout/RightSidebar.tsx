@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   SlidersHorizontal, 
   Trash2, 
@@ -17,7 +17,8 @@ import {
   Download,
   RotateCw,
   Info,
-  Check
+  Check,
+  ChevronLeft
 } from "lucide-react"
 import { useWorkspaceStore, type Tool, type Annotation } from "@/store/useWorkspaceStore"
 import { Button } from "@/components/ui/button"
@@ -68,16 +69,43 @@ export function RightSidebar() {
   const hasColor = !['pointer', 'hand', 'eraser'].includes(activeType)
   const hasOpacity = !['pointer', 'hand', 'eraser'].includes(activeType)
 
+  const [isOpen, setIsOpen] = useState(false)
+  
+  useEffect(() => {
+    setIsOpen(!!showProperties)
+  }, [showProperties])
+
   return (
-    <aside className="w-[320px] h-full flex flex-col bg-white/70 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200/60 dark:border-white/5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] z-20 pointer-events-auto overflow-hidden transition-colors duration-500">
-      <div className="flex h-[60px] items-center justify-between border-b border-slate-200/60 dark:border-white/5 px-5 shrink-0 bg-white/40 dark:bg-slate-900/40 transition-colors duration-500">
-        <div className="flex items-center gap-2 font-semibold text-sm text-slate-800 dark:text-slate-200">
-          Properties
-        </div>
-        <button className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-white/10 transition-all">
-          <SlidersHorizontal className="h-4 w-4" />
+    <aside 
+      className={cn(
+        "flex flex-col z-20 pointer-events-auto transition-all duration-300 ease-in-out",
+        isOpen 
+          ? "w-[320px] h-full bg-white/70 dark:bg-[#1e293b]/60 backdrop-blur-2xl border border-slate-200/60 dark:border-white/5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden" 
+          : "w-[60px] h-full justify-center items-center bg-transparent border-transparent"
+      )}
+    >
+      {!isOpen ? (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="group h-20 w-6 hover:w-12 hover:h-12 rounded-full hover:rounded-2xl flex items-center justify-center bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-md text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-300 ease-out"
+          title="Open Properties"
+        >
+          <ChevronLeft className="h-4 w-4 block group-hover:hidden transition-transform -ml-0.5" strokeWidth={3} />
+          <SlidersHorizontal className="h-5 w-5 hidden group-hover:block transition-transform" />
         </button>
-      </div>
+      ) : (
+        <>
+          <div className="flex h-[60px] items-center justify-between border-b border-slate-200/60 dark:border-white/5 px-5 shrink-0 bg-white/40 dark:bg-slate-900/40 transition-colors duration-500">
+            <div className="flex items-center gap-2 font-semibold text-sm text-slate-800 dark:text-slate-200">
+              Properties
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="h-7 w-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 dark:hover:bg-white/10 transition-all"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
         {!showProperties ? (
@@ -361,6 +389,8 @@ export function RightSidebar() {
           </div>
         )}
       </div>
+        </>
+      )}
     </aside>
   )
 }

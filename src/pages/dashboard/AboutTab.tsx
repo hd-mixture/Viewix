@@ -5,13 +5,22 @@ import { Button } from "@/components/ui/button"
 import { useWorkspaceStore } from "@/store/useWorkspaceStore"
 
 const upcomingFeatures = [
-  "Viewix Pro: Unlimited Cloud Sync & AI Document Summaries",
-  "Viewix Pro: OCR for Image PDFs & Team Collaboration",
   "Settings: Theme overrides, Auto Save, Keyboard Shortcuts",
-  "User Profile: Account management and Connected devices"
+  "User Profile: Account management and Connected devices",
+  "Collaboration: Multi-user real-time document viewing"
 ]
 
 const changelog = [
+  {
+    version: "v2.5.0",
+    date: "July 2026",
+    changes: [
+      "Added intelligent 'Continue Reading' widget on Mobile Home with live PDF cover extraction",
+      "Introduced dynamic daily 'Viewix Wisdom' quotes with 3D glassmorphism floating effects",
+      "Designed a smart, context-aware collapsible Properties Panel for desktop layout",
+      "Implemented real-time tracking of document reading progress natively"
+    ]
+  },
   {
     version: "v2.4.0",
     date: "July 2026",
@@ -77,7 +86,7 @@ export function AboutTab() {
     setTimeout(() => {
       setIsChecking(false)
       setLastChecked(new Date())
-      showToast("Up to date", "You are running the latest version of Viewix (v2.4.0).", 3000)
+      showToast("Up to date", "You are running the latest version of Viewix (v2.5.0).", 3000)
     }, 1500)
   }
 
@@ -92,7 +101,7 @@ export function AboutTab() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">About Viewix</h1>
-          <p className="text-slate-500 dark:text-slate-400">Version 2.4.0</p>
+          <p className="text-slate-500 dark:text-slate-400">Version 2.5.0</p>
         </div>
       </div>
 

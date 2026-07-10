@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTheme } from "next-themes"
-import { ShieldCheck, UploadCloud, PenTool, Zap, Users, Crown, ChevronRight } from "lucide-react"
+import { ShieldCheck, UploadCloud, PenTool, Zap, Users, Crown, ChevronRight, FileText, File as FileIcon, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { getPdfFromDB } from "@/lib/db"
+import * as pdfjsLib from "pdfjs-dist"
 
 export function HomeTab({ 
   getRootProps, 
@@ -10,11 +13,97 @@ export function HomeTab({
   isDragActive, 
   isDragReject, 
   isUploading, 
-  errorMsg 
+  errorMsg,
+  onOpenFile
 }: any) {
   const { theme } = useTheme()
   const isLight = theme !== "dark"
   const illustrationSrc = isLight ? "/Futuristic_interface_light.png" : "/Futuristic_interface.png"
+
+  const [recentDoc, setRecentDoc] = useState<any>(null)
+  const [readingProgress, setReadingProgress] = useState<number>(0)
+  const [coverImage, setCoverImage] = useState<string | null>(null)
+  
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('viewix_recent') || '[]')
+      if (stored && stored.length > 0) {
+        const doc = stored[0]
+        setRecentDoc(doc)
+        
+        // Calculate progress
+        const savedProgress = localStorage.getItem(`viewix_progress_${doc.name}`)
+        if (savedProgress && doc.pages) {
+          const currentPage = parseInt(savedProgress, 10)
+          const percentage = Math.round((currentPage / doc.pages) * 100)
+          setReadingProgress(Math.min(100, Math.max(0, percentage)))
+        } else {
+          setReadingProgress(0) // Start of document
+        }
+      }
+    } catch (e) {}
+  }, [])
+
+  useEffect(() => {
+    const fetchCoverImage = async () => {
+      if (!recentDoc) return
+      try {
+        const file = await getPdfFromDB(recentDoc.name)
+        if (!file) return
+        
+        const url = URL.createObjectURL(file)
+        const loadingTask = pdfjsLib.getDocument({ url })
+        const pdf = await loadingTask.promise
+        const page = await pdf.getPage(1)
+        
+        const viewport = page.getViewport({ scale: 0.5 }) 
+        const canvas = document.createElement("canvas")
+        const context = canvas.getContext("2d")
+        if (!context) return
+        
+        canvas.width = viewport.width
+        canvas.height = viewport.height
+        
+        await page.render({ canvasContext: context, viewport }).promise
+        setCoverImage(canvas.toDataURL("image/jpeg", 0.8))
+        
+        URL.revokeObjectURL(url)
+      } catch (err) {
+        console.error("Failed to generate thumbnail:", err)
+      }
+    }
+    fetchCoverImage()
+  }, [recentDoc])
+
+  const handleContinueReading = async () => {
+    if (!recentDoc) return
+    const file = await getPdfFromDB(recentDoc.name)
+    if (file && onOpenFile) {
+      onOpenFile(file)
+    } else {
+      alert("Could not load the file. It may have been cleared from local storage.")
+    }
+  }
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const formatTimeAgo = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    if (hours > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    if (minutes > 0) return `${minutes} ${minutes === 1 ? 'min' : 'mins'} ago`;
+    return 'Just now';
+  }
 
   return (
     <motion.div 
@@ -284,28 +373,93 @@ export function HomeTab({
           </div>
         </motion.div>
 
-        {/* Viewix Pro Banner */}
+        {/* Continue Reading Section (Mobile Only) */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-amber-400 to-orange-500 p-[1px] shadow-lg active:scale-[0.98] transition-transform duration-200 cursor-pointer"
+          className="flex flex-col gap-3 w-full"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-[150%] animate-[shimmer_3s_infinite]" />
-          <div className="bg-white dark:bg-[#131C31] rounded-[19px] p-4 flex items-center gap-4 relative z-10">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-inner">
-              <Crown className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Viewix Pro</h4>
-                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider">Premium</span>
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Continue Reading</h3>
+          </div>
+          
+          <div className="relative overflow-hidden rounded-[28px] bg-white/60 dark:bg-[#131C31]/80 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 p-6 shadow-lg min-h-[170px] flex flex-col justify-between">
+            {/* Ambient Background Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-blue-500/10 dark:bg-blue-500/20 blur-[50px] rounded-full pointer-events-none" />
+
+            {recentDoc ? (
+              <>
+                <div className="relative z-10 flex gap-4">
+                  {/* Thumbnail Placeholder */}
+                  <div className="w-[72px] h-[90px] rounded-xl bg-white dark:bg-[#0F172A] flex items-center justify-center shrink-0 shadow-sm border border-slate-200/80 dark:border-slate-700/60 overflow-hidden relative group">
+                    {coverImage ? (
+                      <img src={coverImage} alt="PDF Cover" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <FileIcon className="w-8 h-8 text-blue-500/40 dark:text-blue-500/60" />
+                    )}
+                  </div>
+                  
+                  {/* Metadata */}
+                  <div className="flex-1 flex flex-col justify-between py-1">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide border border-red-200/80 dark:border-red-500/20">PDF</span>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-tight">Last opened {formatTimeAgo(recentDoc.timestamp)}</p>
+                      </div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight line-clamp-2 pr-2">{recentDoc.name}</h4>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2">
+                      <span>{formatSize(recentDoc.size)}</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                      <span>{recentDoc.pages} Pages</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar & Button */}
+                <div className="relative z-10 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Reading Progress</span>
+                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">{readingProgress}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden mb-5">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${readingProgress}%` }}
+                      transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" 
+                    />
+                  </div>
+                  
+                  <button 
+                    onClick={handleContinueReading}
+                    className="w-full h-[46px] rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_4px_14px_rgba(37,99,235,0.25)] dark:shadow-[0_4px_14px_rgba(37,99,235,0.15)] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  >
+                    Continue Reading <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="relative z-10 flex flex-col items-center justify-center py-4 gap-4">
+                <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <div className="text-center">
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">No recent documents</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Upload your first PDF to begin.</p>
+                </div>
+                <div {...getRootProps()} className="w-full">
+                  <input {...getInputProps()} />
+                  <button 
+                    className="w-full h-[46px] mt-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_4px_14px_rgba(37,99,235,0.25)] dark:shadow-[0_4px_14px_rgba(37,99,235,0.15)] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  >
+                    <UploadCloud className="w-4 h-4" /> Upload PDF
+                  </button>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">Unlock advanced tools & features.</p>
-            </div>
-            <div className="w-7 h-7 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </div>
+            )}
           </div>
         </motion.div>
       </div>

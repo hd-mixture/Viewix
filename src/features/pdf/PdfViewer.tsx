@@ -165,6 +165,13 @@ export function PdfViewer() {
     }
   }
 
+  // Save progress to local storage
+  useEffect(() => {
+    if (pdfFile && currentPage) {
+      localStorage.setItem(`viewix_progress_${pdfFile.name}`, currentPage.toString())
+    }
+  }, [pdfFile, currentPage])
+
   if (!pdfDocument) return null
 
   return (
